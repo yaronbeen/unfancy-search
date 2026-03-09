@@ -56,9 +56,7 @@ export async function triggerBaseline(
       },
       body: JSON.stringify([
         {
-          keyword: query,
-          country: geo,
-          language: "en",
+          url: `https://www.google.com/search?q=${encodeURIComponent(query)}&gl=${geo}&hl=en`,
         },
       ]),
     },
