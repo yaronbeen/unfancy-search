@@ -18,7 +18,7 @@ The kind of thing you'd pay a "fancy" search API vendor for.
 
 Except this one costs **$0.002–$0.005 per search** instead of $0.01–$0.05. And you own every line.
 
-**[Live Demo →](https://unfancy-search.pages.dev)**
+**[Live Demo →](https://unfancy-search.yaron-been.workers.dev)**
 
 ---
 

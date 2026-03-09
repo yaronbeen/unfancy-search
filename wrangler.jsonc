@@ -15,15 +15,15 @@
   "kv_namespaces": [
     {
       "binding": "SEARCH_JOBS_KV",
-      "id": "placeholder-search-jobs"
+      "id": "7480504cb81a4fa8b7f7081b2df89bde"
     },
     {
       "binding": "BASELINE_JOBS_KV",
-      "id": "placeholder-baseline-jobs"
+      "id": "3fc4f6ab6cdd440295cd874488f9658d"
     },
     {
       "binding": "BASELINES_KV",
-      "id": "placeholder-baselines"
+      "id": "44e0530786064270878e4ba5bb903978"
     }
   ]
 }
