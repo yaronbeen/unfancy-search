@@ -4,7 +4,7 @@ import type { RankedResult } from "./types";
 const DATASETS_API_BASE = "https://api.brightdata.com/datasets/v3";
 
 // Default: Bright Data's standard Google Search SERP dataset
-const DEFAULT_DATASET_ID = "gd_l1viktl72bvl7bjuj0";
+const DEFAULT_DATASET_ID = "gd_mfz5x93lmsjjjylob";
 
 export interface BaselineResult {
   url: string;
@@ -56,7 +56,10 @@ export async function triggerBaseline(
       },
       body: JSON.stringify([
         {
-          url: `https://www.google.com/search?q=${encodeURIComponent(query)}&gl=${geo}&hl=en`,
+          url: "https://www.google.com/",
+          keyword: query,
+          country: geo.toUpperCase(),
+          language: "en",
         },
       ]),
     },
@@ -105,37 +108,50 @@ export async function fetchSnapshot(
     throw new Error(`Snapshot fetch error ${res.status}: ${text}`);
   }
 
-  const data = (await res.json()) as Record<string, unknown>[];
+  const rawData = (await res.json()) as Record<string, unknown>[];
 
-  // Datasets API returns an array of result objects
-  // Normalize to our BaselineResult format
-  if (!Array.isArray(data)) {
+  // Datasets API returns an array of result objects, each containing an "organic" array
+  // with the actual search results. We flatten all organic results across all result objects.
+  if (!Array.isArray(rawData)) {
     return [];
   }
 
-  return data.map(
-    (item: Record<string, unknown>, index: number): BaselineResult => {
-      const url =
-        (item.url as string) ||
-        (item.link as string) ||
-        (item.final_url as string) ||
-        "";
-      const title =
-        (item.title as string) ||
-        (item.name as string) ||
-        `Result ${index + 1}`;
-      const description =
-        (item.description as string) || (item.snippet as string) || "";
+  const results: BaselineResult[] = [];
 
-      return {
+  for (const item of rawData) {
+    const organicResults = item.organic as
+      | Array<Record<string, unknown>>
+      | undefined;
+    if (!Array.isArray(organicResults)) {
+      continue;
+    }
+
+    for (const organic of organicResults) {
+      const url =
+        (organic.link as string) ||
+        (organic.url as string) ||
+        (organic.final_url as string) ||
+        "";
+      if (!url) continue;
+
+      const title =
+        (organic.title as string) ||
+        (organic.name as string) ||
+        `Result ${results.length + 1}`;
+      const description =
+        (organic.description as string) || (organic.snippet as string) || "";
+
+      results.push({
         url,
         title,
         description,
         domain: extractDomain(url),
         canonical_url: canonicalizeUrl(url),
-      };
-    },
-  );
+      });
+    }
+  }
+
+  return results;
 }
 
 /**

@@ -202,79 +202,89 @@ export function useBaseline(query: string, liveResults: RankedResult[] | null) {
     return () => clearInterval(interval);
   }, [baseline]);
 
-  const collectBaseline = useCallback(async () => {
-    if (!query.trim() || isCollecting) return;
+  const collectBaseline = useCallback(
+    async (turnstileToken?: string | null) => {
+      if (!query.trim() || isCollecting) return;
 
-    setIsCollecting(true);
-    setCollectError(null);
+      setIsCollecting(true);
+      setCollectError(null);
 
-    try {
-      // Trigger baseline collection
-      const triggerRes = await fetch("/api/baseline", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: query.trim(), geo: "us" }),
-      });
+      try {
+        // Trigger baseline collection
+        const triggerRes = await fetch("/api/baseline", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: query.trim(),
+            geo: "us",
+            turnstileToken: turnstileToken || undefined,
+          }),
+        });
 
-      if (!triggerRes.ok) {
-        const data = (await triggerRes.json().catch(() => ({}))) as Record<
-          string,
-          string
-        >;
-        throw new Error(data.error || "Failed to start baseline collection");
-      }
+        if (!triggerRes.ok) {
+          const data = (await triggerRes.json().catch(() => ({}))) as Record<
+            string,
+            string
+          >;
+          throw new Error(data.error || "Failed to start baseline collection");
+        }
 
-      const { job_id } = (await triggerRes.json()) as { job_id: string };
+        const { job_id } = (await triggerRes.json()) as { job_id: string };
 
-      // Poll for results
-      const deadline = Date.now() + 360_000; // 6 min client timeout
+        // Poll for results
+        const deadline = Date.now() + 360_000; // 6 min client timeout
 
-      if (pollRef.current) clearInterval(pollRef.current);
+        if (pollRef.current) clearInterval(pollRef.current);
 
-      await new Promise<void>((resolve, reject) => {
-        pollRef.current = setInterval(async () => {
-          if (Date.now() > deadline) {
-            if (pollRef.current) clearInterval(pollRef.current);
-            reject(new Error("Baseline collection timed out"));
-            return;
-          }
-
-          try {
-            const statusRes = await fetch(`/api/baseline-status/${job_id}`);
-            const data = (await statusRes.json()) as Record<string, unknown> & {
-              status?: string;
-              baseline?: BaselineData;
-              error?: string;
-            };
-
-            if (data.status === "done") {
+        await new Promise<void>((resolve, reject) => {
+          pollRef.current = setInterval(async () => {
+            if (Date.now() > deadline) {
               if (pollRef.current) clearInterval(pollRef.current);
-              if (data.baseline) {
-                setBaseline(data.baseline);
-                setBaselineAge(timeAgo(data.baseline.collected_at));
-              }
-              resolve();
-            } else if (data.status === "error") {
-              if (pollRef.current) clearInterval(pollRef.current);
-              reject(new Error(data.error || "Baseline collection failed"));
+              reject(new Error("Baseline collection timed out"));
+              return;
             }
-          } catch {
-            // Network error during poll — keep trying
-          }
-        }, 5_000);
-      });
-    } catch (err) {
-      setCollectError(
-        err instanceof Error ? err.message : "Baseline collection failed",
-      );
-    } finally {
-      setIsCollecting(false);
-      if (pollRef.current) {
-        clearInterval(pollRef.current);
-        pollRef.current = null;
+
+            try {
+              const statusRes = await fetch(`/api/baseline-status/${job_id}`);
+              const data = (await statusRes.json()) as Record<
+                string,
+                unknown
+              > & {
+                status?: string;
+                baseline?: BaselineData;
+                error?: string;
+              };
+
+              if (data.status === "done") {
+                if (pollRef.current) clearInterval(pollRef.current);
+                if (data.baseline) {
+                  setBaseline(data.baseline);
+                  setBaselineAge(timeAgo(data.baseline.collected_at));
+                }
+                resolve();
+              } else if (data.status === "error") {
+                if (pollRef.current) clearInterval(pollRef.current);
+                reject(new Error(data.error || "Baseline collection failed"));
+              }
+            } catch {
+              // Network error during poll — keep trying
+            }
+          }, 5_000);
+        });
+      } catch (err) {
+        setCollectError(
+          err instanceof Error ? err.message : "Baseline collection failed",
+        );
+      } finally {
+        setIsCollecting(false);
+        if (pollRef.current) {
+          clearInterval(pollRef.current);
+          pollRef.current = null;
+        }
       }
-    }
-  }, [query, isCollecting]);
+    },
+    [query, isCollecting],
+  );
 
   return {
     baseline,

@@ -7,6 +7,8 @@ declare global {
     BRIGHT_DATA_SERP_ZONE: string;
     BRIGHT_DATA_DATASET_ID: string;
     ANTHROPIC_API_KEY: string;
+    TURNSTILE_SECRET_KEY: string;
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: string;
     ASSETS: Fetcher;
   }
 }

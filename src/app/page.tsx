@@ -10,7 +10,8 @@ import { DomainClusters } from "@/components/domain-clusters";
 import { CostComparison } from "@/components/cost-comparison";
 import { BaselineComparisonPanel } from "@/components/baseline-comparison";
 import { useBaseline } from "@/hooks/use-baseline";
-import { useState, useEffect, Suspense } from "react";
+import { useTurnstile } from "@/hooks/use-turnstile";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import {
   LayoutGrid,
   List,
@@ -53,6 +54,12 @@ export default function Home() {
     baselineAge,
   } = useBaseline(query, results?.results ?? null);
 
+  const {
+    containerRef: turnstileRef,
+    token: turnstileToken,
+    resetToken,
+  } = useTurnstile(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+
   const router = useRouter();
   const [view, setView] = useState<"list" | "clusters">("list");
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
@@ -75,8 +82,19 @@ export default function Home() {
   // Called by SearchParamSync on mount if ?q= is present
   const handleAutoSearch = (q: string) => {
     setQuery(q);
-    search(q);
+    search(q, turnstileToken);
+    resetToken();
   };
+
+  const handleSearch = useCallback(() => {
+    search(undefined, turnstileToken);
+    resetToken();
+  }, [search, turnstileToken, resetToken]);
+
+  const handleCollectBaseline = useCallback(() => {
+    collectBaseline(turnstileToken);
+    resetToken();
+  }, [collectBaseline, turnstileToken, resetToken]);
 
   return (
     <main className="min-h-screen px-4 pb-20">
@@ -270,7 +288,7 @@ export default function Home() {
         <SearchBox
           query={query}
           onQueryChange={setQuery}
-          onSearch={search}
+          onSearch={handleSearch}
           isSearching={isSearching}
           hasResults={hasResults}
         />
@@ -380,7 +398,7 @@ export default function Home() {
                   collectError={collectError}
                   baselineAge={baselineAge}
                   hasResults={hasResults}
-                  onCollect={collectBaseline}
+                  onCollect={handleCollectBaseline}
                 />
               </div>
             </div>
@@ -396,13 +414,19 @@ export default function Home() {
               collectError={collectError}
               baselineAge={baselineAge}
               hasResults={hasResults}
-              onCollect={collectBaseline}
+              onCollect={handleCollectBaseline}
             />
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Footer — Powered by Bright Data */}
+      {/* Turnstile widget — invisible unless challenge needed */}
+      <div
+        ref={turnstileRef}
+        className="fixed bottom-12 left-1/2 -translate-x-1/2 z-50"
+      />
+
       <footer className="fixed bottom-0 left-0 right-0 py-2 text-center bg-[var(--bg)] border-t border-gray-200/50">
         <a
           href="https://get.brightdata.com/1tndi4600b25"

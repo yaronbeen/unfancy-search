@@ -3,6 +3,8 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { triggerBaseline, fetchSnapshot, hashQuery } from "@/lib/datasets";
 import type { BaselineData } from "@/lib/datasets";
 import { kvSet, kvGet } from "@/lib/kv-store";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 const POLL_INTERVAL_MS = 10_000; // 10 seconds
 const MAX_POLL_TIME_MS = 300_000; // 5 minutes
@@ -83,10 +85,36 @@ async function runBaselineCollection(
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as { query?: string; geo?: string };
+    const body = (await request.json()) as {
+      query?: string;
+      geo?: string;
+      turnstileToken?: string;
+    };
     const query = body.query?.trim();
     if (!query) {
       return NextResponse.json({ error: "query is required" }, { status: 400 });
+    }
+
+    // Rate limiting: 3 baselines per hour per IP
+    const ip = getClientIp(request);
+    const rateLimit = await checkRateLimit(ip, "baseline", 3, 3600);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Baseline collection rate limited. Try again later." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimit.retryAfter ?? 3600) },
+        },
+      );
+    }
+
+    // Turnstile verification
+    const turnstileResult = await verifyTurnstile(body.turnstileToken, ip);
+    if (!turnstileResult.success) {
+      return NextResponse.json(
+        { error: turnstileResult.error },
+        { status: 403 },
+      );
     }
 
     const jobId = crypto.randomUUID();

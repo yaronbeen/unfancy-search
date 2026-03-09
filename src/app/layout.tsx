@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const sans = Space_Grotesk({
@@ -25,11 +26,11 @@ export const metadata: Metadata = {
     title: "unfancy — You don't need a fancy search API",
     description:
       "Build your own search pipeline with Bright Data SERP + Claude AI + RRF. ~$0.003/query vs $0.01–$0.05 for fancy APIs.",
-    url: "https://unfancy-search.netlify.app",
+    url: "https://unfancy-search.yaron-been.workers.dev",
     siteName: "unfancy",
     images: [
       {
-        url: "https://unfancy-search.netlify.app/og-image.svg",
+        url: "https://unfancy-search.yaron-been.workers.dev/og-image.svg",
         width: 1200,
         height: 630,
         alt: "unfancy — You don't need a fancy search API",
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
     title: "unfancy — You don't need a fancy search API",
     description:
       "Build your own search pipeline with Bright Data SERP + Claude AI + RRF. ~$0.003/query vs $0.01–$0.05 for fancy APIs.",
-    images: ["https://unfancy-search.netlify.app/og-image.svg"],
+    images: ["https://unfancy-search.yaron-been.workers.dev/og-image.svg"],
   },
 };
 
@@ -55,6 +56,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${sans.variable} ${mono.variable} antialiased`}>
         {children}
+        <Script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   );

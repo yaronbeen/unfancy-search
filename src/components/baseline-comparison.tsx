@@ -27,6 +27,7 @@ interface BaselineComparisonProps {
 interface SourceSectionProps {
   title: string;
   count: number;
+  description: string;
   items: { url: string; title: string; domain: string }[];
   color: string;
   icon: React.ReactNode;
@@ -36,6 +37,7 @@ interface SourceSectionProps {
 function SourceSection({
   title,
   count,
+  description,
   items,
   color,
   icon,
@@ -62,6 +64,9 @@ function SourceSection({
           <span className="font-[family-name:var(--font-geist-mono)]">
             ({count})
           </span>
+        </span>
+        <span className="text-[10px] text-gray-400 font-normal hidden sm:inline">
+          — {description}
         </span>
         {open ? (
           <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
@@ -198,7 +203,7 @@ export function BaselineComparisonPanel({
       className="nb-card !shadow-[3px_3px_0_var(--border)] p-4"
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Database className="w-4 h-4" />
           <h3 className="text-sm font-bold">Baseline vs Live</h3>
@@ -213,6 +218,15 @@ export function BaselineComparisonPanel({
         </button>
       </div>
 
+      {/* Explainer */}
+      <p className="text-[11px] text-gray-500 leading-relaxed mb-3">
+        Compares your{" "}
+        <span className="font-semibold text-[var(--fg)]">live search</span>{" "}
+        against a historical snapshot from the Bright Data Datasets API. See
+        which sources appeared, disappeared, or stayed since the baseline was
+        collected.
+      </p>
+
       {/* Baseline meta */}
       <div className="text-[10px] text-gray-400 mb-3 flex items-center gap-2">
         <span>
@@ -224,13 +238,22 @@ export function BaselineComparisonPanel({
 
       {/* Summary badges */}
       <div className="flex gap-2 mb-4">
-        <span className="px-2 py-0.5 text-[10px] font-bold rounded-md border-2 border-[var(--border)] bg-[var(--accent-teal)]">
+        <span
+          title="Sources that appear in the live results but were NOT in the baseline snapshot. These are newly ranking pages since your last collection."
+          className="px-2 py-0.5 text-[10px] font-bold rounded-md border-2 border-[var(--border)] bg-[var(--accent-teal)] cursor-help"
+        >
           +{comparison.new_sources.length} new
         </span>
-        <span className="px-2 py-0.5 text-[10px] font-bold rounded-md border-2 border-[var(--border)] bg-[var(--accent-coral)]">
+        <span
+          title="Sources that were in the baseline snapshot but are NO LONGER in the live results. These pages dropped out of the rankings since your last collection — they may have been deindexed, outranked, or the query intent shifted."
+          className="px-2 py-0.5 text-[10px] font-bold rounded-md border-2 border-[var(--border)] bg-[var(--accent-coral)] cursor-help"
+        >
           -{comparison.gone_sources.length} gone
         </span>
-        <span className="px-2 py-0.5 text-[10px] font-bold rounded-md border-2 border-[var(--border)] bg-[var(--accent-yellow)]">
+        <span
+          title="Sources that appear in BOTH the baseline snapshot and the live results. These are stable, consistently ranking pages."
+          className="px-2 py-0.5 text-[10px] font-bold rounded-md border-2 border-[var(--border)] bg-[var(--accent-yellow)] cursor-help"
+        >
           ={comparison.persistent.length} same
         </span>
       </div>
@@ -240,6 +263,7 @@ export function BaselineComparisonPanel({
         <SourceSection
           title="New Sources"
           count={comparison.new_sources.length}
+          description="appeared since baseline"
           items={comparison.new_sources}
           color="var(--accent-teal)"
           icon={<TrendingUp className="w-3.5 h-3.5" />}
@@ -248,6 +272,7 @@ export function BaselineComparisonPanel({
         <SourceSection
           title="Gone Sources"
           count={comparison.gone_sources.length}
+          description="dropped out since baseline"
           items={comparison.gone_sources}
           color="var(--accent-coral)"
           icon={<TrendingDown className="w-3.5 h-3.5" />}
@@ -255,6 +280,7 @@ export function BaselineComparisonPanel({
         <SourceSection
           title="Persistent"
           count={comparison.persistent.length}
+          description="still ranking from baseline"
           items={comparison.persistent}
           color="var(--accent-yellow)"
           icon={<Equal className="w-3.5 h-3.5" />}

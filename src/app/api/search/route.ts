@@ -6,6 +6,8 @@ import { fetchSerpFanOut } from "@/lib/bright-data";
 import { reciprocalRankFusion } from "@/lib/rerank";
 import { clusterByDomain, applyDomainDiversity } from "@/lib/cluster";
 import { kvSet } from "@/lib/kv-store";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 const SERP_COST_PER_REQUEST = 0.0015;
 const LLM_COST_PER_CALL = 0.00015;
@@ -106,10 +108,34 @@ async function runSearch(body: Record<string, unknown>, jobId: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as Partial<SearchRequest>;
+    const body = (await request.json()) as Partial<SearchRequest> & {
+      turnstileToken?: string;
+    };
     const query = body.query?.trim();
     if (!query) {
       return NextResponse.json({ error: "query is required" }, { status: 400 });
+    }
+
+    // Rate limiting: 10 searches per minute per IP
+    const ip = getClientIp(request);
+    const rateLimit = await checkRateLimit(ip, "search", 10, 60);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimit.retryAfter ?? 60) },
+        },
+      );
+    }
+
+    // Turnstile verification
+    const turnstileResult = await verifyTurnstile(body.turnstileToken, ip);
+    if (!turnstileResult.success) {
+      return NextResponse.json(
+        { error: turnstileResult.error },
+        { status: 403 },
+      );
     }
 
     const jobId = crypto.randomUUID();

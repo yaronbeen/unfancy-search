@@ -37,7 +37,7 @@ export function useSearch() {
   const [error, setError] = useState<string | null>(null);
 
   const search = useCallback(
-    async (searchQuery?: string) => {
+    async (searchQuery?: string, turnstileToken?: string | null) => {
       const q = (searchQuery ?? query).trim();
       if (!q) return;
 
@@ -51,7 +51,12 @@ export function useSearch() {
         const jobRes = await fetch("/api/search", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: q, engines: ["google"], ...filters }),
+          body: JSON.stringify({
+            query: q,
+            engines: ["google"],
+            ...filters,
+            turnstileToken: turnstileToken || undefined,
+          }),
         });
 
         if (!jobRes.ok) {
