@@ -33,7 +33,7 @@ The retrieval step, which is the actually hard part, is just SERP scraping. They
 
 The project is called Unfancy Search. It is a Next.js app that implements the full pipeline explicitly, so you can see every step.
 
-**[Live demo](https://unfancy-search.netlify.app) | [GitHub](https://github.com/yaronbeen/unfancy-search)**
+**[Live demo](https://unfancy-search.pages.dev) | [GitHub](https://github.com/yaronbeen/unfancy-search)**
 
 Here is how it works:
 
@@ -210,7 +210,7 @@ It is four functions and a POST request.
 
 - **Bright Data SERP API**: [brightdata.com](https://brightdata.com) (get an API key, create a SERP zone)
 - **GitHub repo**: [github.com/yaronbeen/unfancy-search](https://github.com/yaronbeen/unfancy-search)
-- **Live demo**: [unfancy-search.netlify.app](https://unfancy-search.netlify.app)
+- **Live demo**: [unfancy-search.pages.dev](https://unfancy-search.pages.dev)
 
 Clone it. Break it. Build on it. Ship it.
 

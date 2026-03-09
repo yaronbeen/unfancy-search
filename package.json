@@ -8,11 +8,13 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "preview": "opennextjs-cloudflare build && wrangler dev",
+    "cf:build": "opennextjs-cloudflare build",
+    "deploy": "opennextjs-cloudflare build && wrangler deploy"
   },
   "dependencies": {
-    "@netlify/blobs": "^10.7.0",
-    "@netlify/functions": "^5.1.2",
+    "@opennextjs/cloudflare": "^1.17.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.35.1",
     "lucide-react": "^0.577.0",
@@ -21,7 +23,7 @@
     "react-dom": "19.2.3"
   },
   "devDependencies": {
-    "@netlify/plugin-nextjs": "^5.15.8",
+    "@cloudflare/workers-types": "^4.20260307.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -31,6 +33,7 @@
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "wrangler": "^4.71.0"
   }
 }

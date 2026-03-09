@@ -48,7 +48,7 @@ async function expandWithLLM(
     throw new Error(`Anthropic API error ${res.status}: ${text}`);
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as { content?: { text?: string }[] };
   const content = data.content?.[0]?.text || "[]";
 
   // Strip markdown code fences if present

@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "unfancy-search",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Static assets served from the .open-next/assets directory
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  // KV namespaces for job status + baseline storage
+  "kv_namespaces": [
+    {
+      "binding": "SEARCH_JOBS_KV",
+      "id": "placeholder-search-jobs"
+    },
+    {
+      "binding": "BASELINE_JOBS_KV",
+      "id": "placeholder-baseline-jobs"
+    },
+    {
+      "binding": "BASELINES_KV",
+      "id": "placeholder-baselines"
+    }
+  ]
+}

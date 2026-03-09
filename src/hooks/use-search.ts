@@ -55,11 +55,14 @@ export function useSearch() {
         });
 
         if (!jobRes.ok) {
-          const data = await jobRes.json().catch(() => ({}));
+          const data = (await jobRes.json().catch(() => ({}))) as Record<
+            string,
+            string
+          >;
           throw new Error(data.error || `Search failed (${jobRes.status})`);
         }
 
-        const { job_id } = await jobRes.json();
+        const { job_id } = (await jobRes.json()) as { job_id: string };
 
         // Step 2: Poll for results
         setStep("retrieving");
@@ -68,16 +71,16 @@ export function useSearch() {
         while (Date.now() < deadline) {
           await sleep(2500);
           const statusRes = await fetch(`/api/search-status/${job_id}`);
-          const data = await statusRes.json();
+          const data = (await statusRes.json()) as Record<string, unknown>;
           if (data.status === "done") {
             setStep("reranking");
             await sleep(300);
-            setResults(data.result);
+            setResults(data.result as SearchResponse);
             setStep("done");
             return;
           }
           if (data.status === "error") {
-            throw new Error(data.error || "Search failed");
+            throw new Error((data.error as string) || "Search failed");
           }
           // still pending — keep polling
         }

@@ -69,7 +69,7 @@ export async function triggerBaseline(
     throw new Error(`Datasets API error ${res.status}: ${text}`);
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as { snapshot_id?: string };
   if (!data.snapshot_id) {
     throw new Error("Datasets API did not return a snapshot_id");
   }
@@ -107,7 +107,7 @@ export async function fetchSnapshot(
     throw new Error(`Snapshot fetch error ${res.status}: ${text}`);
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as Record<string, unknown>[];
 
   // Datasets API returns an array of result objects
   // Normalize to our BaselineResult format

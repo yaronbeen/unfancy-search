@@ -18,7 +18,7 @@ The kind of thing you'd pay a "fancy" search API vendor for.
 
 Except this one costs **$0.002–$0.005 per search** instead of $0.01–$0.05. And you own every line.
 
-**[Live Demo →](https://unfancy-search.netlify.app)**
+**[Live Demo →](https://unfancy-search.pages.dev)**
 
 ---
 
@@ -206,9 +206,8 @@ src/
 └── hooks/
     ├── use-search.ts                # Search state management
     └── use-baseline.ts              # Baseline state + polling
-netlify/functions/
-├── search-background.mts           # Search pipeline background function
-└── baseline-background.mts         # Datasets collection background function
+open-next.config.ts                   # Cloudflare adapter config
+wrangler.jsonc                         # Cloudflare Pages + KV config
 ```
 
 ---
@@ -219,7 +218,7 @@ netlify/functions/
 - **[Bright Data](https://get.brightdata.com/1tndi4600b25) SERP API** — retrieval backbone
 - **Anthropic Claude Haiku** — query expansion
 - **Tailwind CSS** + **Framer Motion** — UI styling and animations
-- **Netlify** (Free tier) — hosting with Background Functions + Blobs
+- **Cloudflare Pages** (Free tier) — hosting with Workers + KV storage
 
 ---
 
@@ -269,7 +268,7 @@ The skill covers:
 - Wiring the `/api/search` route with async background processing
 - Setting up Tailwind CSS + Framer Motion UI components
 - Configuring vitest and writing tests
-- Deploying to Netlify with Background Functions
+- Deploying to Cloudflare Pages with Workers + KV
 
 To use it, copy the `.claude/skills/` directory into your project or `~/.claude/skills/` for global access. Then invoke `/unfancy-search-pipeline` in Claude Code.
 

@@ -1,15 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getStore } from "@netlify/blobs";
-
-function getJobStore() {
-  const siteID =
-    process.env.NETLIFY_SITE_ID ?? "f566d9dd-b740-4ecf-afcd-2e962bda6e7a";
-  const token = process.env.NETLIFY_TOKEN;
-  if (token) {
-    return getStore({ name: "search-jobs", siteID, token });
-  }
-  return getStore("search-jobs");
-}
+import { kvGet } from "@/lib/kv-store";
 
 export async function GET(
   _request: NextRequest,
@@ -17,8 +7,7 @@ export async function GET(
 ) {
   try {
     const { jobId } = await params;
-    const store = getJobStore();
-    const data = await store.get(jobId, { type: "json" });
+    const data = await kvGet("search-jobs", jobId);
 
     if (!data) {
       return NextResponse.json({ status: "pending" });

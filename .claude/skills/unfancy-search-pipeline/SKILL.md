@@ -654,7 +654,7 @@ BRIGHT_DATA_DATASET_ID=
    - Returns HTTP 202 if still processing
    - Returns JSON array of results when ready
 
-3. **Store baseline**: Save results in Netlify Blobs (`baselines` store, key: hash of query)
+3. **Store baseline**: Save results in Cloudflare KV (`BASELINES_KV` namespace, key: hash of query)
 
 4. **Compare**: On future searches, load baseline and diff against live results by canonical URL
 
@@ -709,9 +709,9 @@ interface BaselineComparison {
 }
 ```
 
-### Background Function
+### Background Processing
 
-File: `netlify/functions/baseline-background.mts`
+Background work runs inline in the API route via `ctx.waitUntil()` from `@opennextjs/cloudflare`:
 
 Handles the async Datasets collection:
 

@@ -158,7 +158,10 @@ export function useBaseline(query: string, liveResults: RankedResult[] | null) {
         const res = await fetch(
           `/api/baseline?query=${encodeURIComponent(query)}`,
         );
-        const data = await res.json();
+        const data = (await res.json()) as Record<string, unknown> & {
+          exists?: boolean;
+          baseline?: BaselineData;
+        };
         if (cancelled) return;
         if (data.exists && data.baseline) {
           setBaseline(data.baseline);
@@ -214,11 +217,14 @@ export function useBaseline(query: string, liveResults: RankedResult[] | null) {
       });
 
       if (!triggerRes.ok) {
-        const data = await triggerRes.json().catch(() => ({}));
+        const data = (await triggerRes.json().catch(() => ({}))) as Record<
+          string,
+          string
+        >;
         throw new Error(data.error || "Failed to start baseline collection");
       }
 
-      const { job_id } = await triggerRes.json();
+      const { job_id } = (await triggerRes.json()) as { job_id: string };
 
       // Poll for results
       const deadline = Date.now() + 360_000; // 6 min client timeout
@@ -235,7 +241,11 @@ export function useBaseline(query: string, liveResults: RankedResult[] | null) {
 
           try {
             const statusRes = await fetch(`/api/baseline-status/${job_id}`);
-            const data = await statusRes.json();
+            const data = (await statusRes.json()) as Record<string, unknown> & {
+              status?: string;
+              baseline?: BaselineData;
+              error?: string;
+            };
 
             if (data.status === "done") {
               if (pollRef.current) clearInterval(pollRef.current);

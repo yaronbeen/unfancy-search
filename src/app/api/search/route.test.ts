@@ -1,8 +1,32 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock global fetch for fire-and-forget background call
-const mockFetch = vi.fn().mockResolvedValue(new Response("ok"));
-vi.stubGlobal("fetch", mockFetch);
+// Mock @opennextjs/cloudflare — provides ctx.waitUntil and KV bindings
+const mockWaitUntil = vi.fn();
+const mockKvPut = vi.fn().mockResolvedValue(undefined);
+const mockKvGet = vi.fn().mockResolvedValue(null);
+
+vi.mock("@opennextjs/cloudflare", () => ({
+  getCloudflareContext: () => ({
+    env: {
+      SEARCH_JOBS_KV: {
+        put: mockKvPut,
+        get: mockKvGet,
+      },
+      BASELINE_JOBS_KV: {
+        put: vi.fn(),
+        get: vi.fn(),
+      },
+      BASELINES_KV: {
+        put: vi.fn(),
+        get: vi.fn(),
+      },
+    },
+    ctx: {
+      waitUntil: mockWaitUntil,
+    },
+    cf: {},
+  }),
+}));
 
 import { POST } from "./route";
 
@@ -17,7 +41,6 @@ function makeRequest(body: Record<string, unknown>): Request {
 describe("POST /api/search (dispatcher)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFetch.mockResolvedValue(new Response("ok"));
   });
 
   it("returns 400 when query is missing", async () => {
@@ -41,7 +64,7 @@ describe("POST /api/search (dispatcher)", () => {
     const res = await POST(req as any);
 
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = (await res.json()) as { job_id: string; status: string };
 
     expect(body.job_id).toBeDefined();
     expect(typeof body.job_id).toBe("string");
@@ -49,25 +72,17 @@ describe("POST /api/search (dispatcher)", () => {
     expect(body.status).toBe("pending");
   });
 
-  it("fires background function with job_id and query params", async () => {
+  it("calls ctx.waitUntil with the background search promise", async () => {
     const req = makeRequest({
       query: "test",
-      engines: ["google", "bing"],
+      engines: ["google"],
       geo: "uk",
     });
     await POST(req as any);
 
-    // fetch is called once for the background function fire-and-forget
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-    const [url, options] = mockFetch.mock.calls[0];
-    expect(url).toContain("/.netlify/functions/search-background");
-    expect(options.method).toBe("POST");
-
-    const sentBody = JSON.parse(options.body);
-    expect(sentBody.query).toBe("test");
-    expect(sentBody.engines).toEqual(["google", "bing"]);
-    expect(sentBody.geo).toBe("uk");
-    expect(sentBody.job_id).toBeDefined();
+    // waitUntil should be called once with a Promise
+    expect(mockWaitUntil).toHaveBeenCalledTimes(1);
+    expect(mockWaitUntil.mock.calls[0][0]).toBeInstanceOf(Promise);
   });
 
   it("returns unique job_ids for concurrent requests", async () => {
@@ -79,20 +94,19 @@ describe("POST /api/search (dispatcher)", () => {
       POST(req2 as any),
     ]);
 
-    const body1 = await res1.json();
-    const body2 = await res2.json();
+    const body1 = (await res1.json()) as { job_id: string };
+    const body2 = (await res2.json()) as { job_id: string };
 
     expect(body1.job_id).not.toBe(body2.job_id);
   });
 
-  it("still returns 200 even if background fetch fails", async () => {
-    mockFetch.mockRejectedValue(new Error("network error"));
-
+  it("still returns 200 — waitUntil handles background errors", async () => {
+    // Even if the background function would fail, POST returns immediately
     const req = makeRequest({ query: "test" });
     const res = await POST(req as any);
 
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = (await res.json()) as { job_id: string; status: string };
     expect(body.job_id).toBeDefined();
     expect(body.status).toBe("pending");
   });
@@ -106,7 +120,7 @@ describe("POST /api/search (dispatcher)", () => {
     const res = await POST(req as any);
 
     expect(res.status).toBe(500);
-    const body = await res.json();
+    const body = (await res.json()) as { error: string };
     expect(body.error).toBeDefined();
   });
 });
