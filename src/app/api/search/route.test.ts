@@ -60,7 +60,7 @@ describe("POST /api/search (dispatcher)", () => {
     // fetch is called once for the background function fire-and-forget
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const [url, options] = mockFetch.mock.calls[0];
-    expect(url).toContain("/.netlify/functions/search-bg");
+    expect(url).toContain("/.netlify/functions/search-background");
     expect(options.method).toBe("POST");
 
     const sentBody = JSON.parse(options.body);

@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const jobId = crypto.randomUUID();
 
     // Fire background function — don't await
-    const bgUrl = new URL("/.netlify/functions/search-bg", request.url);
+    const bgUrl = new URL("/.netlify/functions/search-background", request.url);
     fetch(bgUrl.toString(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
