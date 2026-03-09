@@ -232,3 +232,60 @@ Tests cover:
 - **Query expansion** — rule-based fallback, LLM integration (mocked)
 - **SERP retrieval** — API client, fan-out execution, error handling
 - **API route** — full pipeline integration, filters, error responses
+
+---
+
+## Baseline Comparison (Bright Data Datasets)
+
+The app includes a baseline layer powered by the [Bright Data Datasets API](https://brightdata.com/products/datasets).
+
+After running a search, click **"Compare with baseline"** in the sidebar to:
+
+- Trigger a SERP collection via Bright Data Datasets API
+- Download the snapshot once ready
+- See which sources are **new** since the baseline and which have **gone**
+
+This is useful for tracking how search results drift over time. Refresh the baseline daily or weekly to keep it current.
+
+### Setup
+
+Add your dataset ID to `.env`:
+
+```env
+BRIGHT_DATA_DATASET_ID=your_dataset_id_here
+```
+
+Create a Web Scraper (SERP type) in your [Bright Data dashboard](https://brightdata.com/cp) to get a dataset ID.
+
+### API
+
+```
+POST /api/baseline
+{ "action": "trigger", "queries": ["..."], "engine": "google", "geo": "us" }
+→ { "snapshot_id": "s_abc123", "status": "collecting" }
+
+POST /api/baseline
+{ "action": "compare", "snapshot_id": "s_abc123", "live_results": [...] }
+→ { "new_sources": [...], "missing_sources": [...], "persistent_sources": [...] }
+```
+
+Baseline snapshots can be refreshed on any schedule — daily or weekly works well for most use cases.
+
+---
+
+## Claude Code Skill
+
+A Claude Code skill is included that enables Claude to generate this entire pipeline from scratch.
+
+**Location:** [`.claude/skills/unfancy-search-pipeline/SKILL.md`](.claude/skills/unfancy-search-pipeline/SKILL.md)
+
+The skill covers:
+
+- Scaffolding the Next.js + TypeScript project
+- Building all six pipeline modules (types, query expansion, SERP client, dedupe, reranking, clustering)
+- Wiring the `/api/search` and `/api/baseline` routes
+- Setting up Tailwind CSS + Framer Motion UI components
+- Configuring vitest and writing tests
+- Deploying to Netlify or Vercel
+
+To use it, copy the `.claude/skills/` directory into your project or `~/.claude/skills/` for global access. Then invoke `/unfancy-search-pipeline` in Claude Code.

@@ -8,6 +8,7 @@ import { PipelineVisualizer } from "@/components/pipeline-visualizer";
 import { ResultsList } from "@/components/results-list";
 import { DomainClusters } from "@/components/domain-clusters";
 import { CostComparison } from "@/components/cost-comparison";
+import { BaselineComparison } from "@/components/baseline-comparison";
 import { useState } from "react";
 import { LayoutGrid, List } from "lucide-react";
 
@@ -22,6 +23,10 @@ export default function Home() {
     error,
     search,
     isSearching,
+    baselineDiff,
+    baselineLoading,
+    baselineSnapshotId,
+    compareBaseline,
   } = useSearch();
 
   const [view, setView] = useState<"list" | "clusters">("list");
@@ -196,6 +201,13 @@ export default function Home() {
               {/* Sidebar */}
               <div className="hidden lg:block w-72 shrink-0 space-y-4 sticky top-28">
                 <CostComparison meta={results.meta} />
+                <BaselineComparison
+                  diff={baselineDiff}
+                  isLoading={baselineLoading}
+                  onTriggerBaseline={() => compareBaseline()}
+                  snapshotId={baselineSnapshotId}
+                  hasResults={hasResults}
+                />
                 {view === "list" && results.clusters.length > 0 && (
                   <motion.div
                     initial={{ opacity: 0, y: 12 }}

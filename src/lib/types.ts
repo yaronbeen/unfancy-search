@@ -46,3 +46,30 @@ export interface SearchMeta {
   estimated_cost_usd: number;
   duration_ms: number;
 }
+
+// --- Datasets Baseline types ---
+
+export interface BaselineResult {
+  title: string;
+  url: string;
+  description: string;
+  domain: string;
+}
+
+export interface BaselineSnapshot {
+  snapshot_id: string;
+  query: string;
+  collected_at: string;
+  status: "collecting" | "ready" | "failed";
+  results: BaselineResult[];
+}
+
+export interface BaselineDiff {
+  new_sources: RankedResult[]; // in live but not in baseline
+  missing_sources: BaselineResult[]; // in baseline but not in live
+  persistent_sources: RankedResult[]; // in both
+  baseline_total: number;
+  live_total: number;
+  snapshot_id: string;
+  collected_at: string;
+}
