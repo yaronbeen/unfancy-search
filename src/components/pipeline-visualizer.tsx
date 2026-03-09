@@ -186,10 +186,10 @@ export function PipelineVisualizer({
                 <motion.p
                   key={messageIndex}
                   initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 0.65, y: 0 }}
+                  animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.4 }}
-                  className="text-xs text-gray-500 italic"
+                  className="text-xs text-gray-700 italic"
                 >
                   {WITTY_MESSAGES[messageIndex]}
                 </motion.p>
@@ -197,9 +197,9 @@ export function PipelineVisualizer({
 
               <motion.p
                 initial={{ opacity: 0 }}
-                animate={{ opacity: showHint ? 0.55 : 0 }}
+                animate={{ opacity: showHint ? 0.85 : 0 }}
                 transition={{ duration: 0.6 }}
-                className="text-xs text-[var(--accent-coral)] font-medium"
+                className="text-xs text-[var(--fg)] font-medium"
               >
                 Real SERP calls can take up to 90s — hang tight!
               </motion.p>
