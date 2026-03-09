@@ -159,7 +159,14 @@ const res = await fetch(
   {
     method: "POST",
     headers: { Authorization: `Bearer ${apiToken}` },
-    body: JSON.stringify([{ keyword: query, country: geo }]),
+    body: JSON.stringify([
+      {
+        url: "https://www.google.com/",
+        keyword: query,
+        country: geo,
+        language: "en",
+      },
+    ]),
   },
 );
 const { snapshot_id } = await res.json();

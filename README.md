@@ -120,7 +120,7 @@ That's it. You now have a search API that does what the fancy ones do.
 - **Research mode** — Deeper retrieval with 12 sub-queries instead of 5
 - **Cost transparency** — Every search shows you exactly what it cost
 - **URL sharing** — Share any search via `?q=` URL parameter
-- **Async pipeline** — Background Functions handle long-running SERP calls (up to 90s)
+- **Async pipeline** — Workers + waitUntil handle long-running SERP calls (up to 90s)
 - **Baseline comparison** — Store a historical snapshot via [Bright Data Datasets API](https://get.brightdata.com/1tndi4600b25), then see what's new, gone, or persistent across searches
 - **AI expansion toggle** — Turn LLM query expansion on/off (off by default for raw SERP speed)
 
@@ -199,13 +199,17 @@ src/
 │   ├── rerank.ts                    # Reciprocal Rank Fusion
 │   ├── dedupe.ts                    # URL canonicalization
 │   ├── cluster.ts                   # Domain clustering + diversity
+│   ├── kv-store.ts                  # Cloudflare KV helper
+│   ├── rate-limit.ts               # KV-based per-IP rate limiting
+│   ├── turnstile.ts                # Cloudflare Turnstile verification
 │   └── types.ts                     # TypeScript types
 ├── components/
 │   ├── baseline-comparison.tsx      # Baseline vs live comparison UI
 │   └── ...                          # Search box, filters, results, etc.
 └── hooks/
     ├── use-search.ts                # Search state management
-    └── use-baseline.ts              # Baseline state + polling
+    ├── use-baseline.ts              # Baseline state + polling
+    └── use-turnstile.ts             # Cloudflare Turnstile widget hook
 open-next.config.ts                   # Cloudflare adapter config
 wrangler.jsonc                         # Cloudflare Pages + KV config
 ```
