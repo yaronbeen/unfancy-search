@@ -15,22 +15,22 @@ describe("expandQuery", () => {
 
   describe("missing API key", () => {
     beforeEach(() => {
-      delete process.env.OPENAI_API_KEY;
+      delete process.env.ANTHROPIC_API_KEY;
     });
 
-    it("throws error when OPENAI_API_KEY is not set", async () => {
+    it("throws error when ANTHROPIC_API_KEY is not set", async () => {
       await expect(expandQuery("typescript")).rejects.toThrow(
-        "OPENAI_API_KEY is not set",
+        "ANTHROPIC_API_KEY is not set",
       );
     });
   });
 
   describe("LLM-based expansion", () => {
     beforeEach(() => {
-      process.env.OPENAI_API_KEY = "test-key";
+      process.env.ANTHROPIC_API_KEY = "test-key";
     });
 
-    it("calls OpenAI API when key is available", async () => {
+    it("calls Anthropic API when key is available", async () => {
       const mockQueries = [
         "typescript basics",
         "typescript tutorial",
@@ -39,13 +39,7 @@ describe("expandQuery", () => {
       const mockFetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify(mockQueries),
-              },
-            },
-          ],
+          content: [{ text: JSON.stringify(mockQueries) }],
         }),
       });
       vi.stubGlobal("fetch", mockFetch);
@@ -61,12 +55,8 @@ describe("expandQuery", () => {
       const mockFetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
-          choices: [
-            {
-              message: {
-                content: "```json\n" + JSON.stringify(mockQueries) + "\n```",
-              },
-            },
+          content: [
+            { text: "```json\n" + JSON.stringify(mockQueries) + "\n```" },
           ],
         }),
       });
@@ -81,13 +71,7 @@ describe("expandQuery", () => {
       const mockFetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify(mockQueries),
-              },
-            },
-          ],
+          content: [{ text: JSON.stringify(mockQueries) }],
         }),
       });
       vi.stubGlobal("fetch", mockFetch);
