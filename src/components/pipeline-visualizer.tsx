@@ -96,7 +96,7 @@ export function PipelineVisualizer({
         className="w-full max-w-2xl mx-auto mt-6"
       >
         <div className="nb-card !shadow-[3px_3px_0_var(--border)] p-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {step === "error" ? (
               <motion.div
                 initial={{ scale: 0.8 }}
@@ -120,7 +120,7 @@ export function PipelineVisualizer({
                 return (
                   <motion.div
                     key={s.key}
-                    className="flex items-center gap-2 flex-1"
+                    className={`items-center gap-2 flex-1 ${isActive || isDone ? "flex" : "hidden sm:flex"}`}
                     initial={false}
                   >
                     <motion.div
@@ -144,8 +144,8 @@ export function PipelineVisualizer({
                         isActive
                           ? "text-[var(--fg)]"
                           : isDone
-                            ? "text-[var(--fg)] opacity-60"
-                            : "text-gray-400"
+                            ? "text-[var(--fg)] opacity-60 hidden sm:inline"
+                            : "text-gray-400 hidden sm:inline"
                       }`}
                     >
                       {s.label}
@@ -168,7 +168,7 @@ export function PipelineVisualizer({
                     </span>
                     {i < STEPS.length - 1 && (
                       <div
-                        className={`flex-1 h-0.5 mx-1 rounded ${
+                        className={`flex-1 h-0.5 mx-1 rounded hidden sm:block ${
                           isDone ? "bg-[var(--fg)]" : "bg-gray-200"
                         }`}
                       />
