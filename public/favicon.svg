@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- shadow -->
+  <rect x="3" y="10" width="13" height="14" rx="3" fill="#1a1a1a" opacity="0.2"/>
+  <!-- yellow box for "un" -->
+  <rect x="1" y="8" width="13" height="14" rx="3" fill="#ffe600" stroke="#1a1a1a" stroke-width="2"/>
+  <!-- "un" text -->
+  <text x="7.5" y="19" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="8.5" fill="#1a1a1a" text-anchor="middle">un</text>
+  <!-- "fancy" text -->
+  <text x="23.5" y="19" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="8.5" fill="#1a1a1a" text-anchor="middle">fancy</text>
+</svg>

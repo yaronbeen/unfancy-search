@@ -7,6 +7,7 @@ import type { PipelineStep } from "@/hooks/use-search";
 
 interface PipelineVisualizerProps {
   step: PipelineStep;
+  resultCount?: number;
 }
 
 const STEPS = [
@@ -38,7 +39,10 @@ const WITTY_MESSAGES = [
   "Worth the wait — no hallucinated links here...",
 ];
 
-export function PipelineVisualizer({ step }: PipelineVisualizerProps) {
+export function PipelineVisualizer({
+  step,
+  resultCount,
+}: PipelineVisualizerProps) {
   const [elapsed, setElapsed] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
   const [showHint, setShowHint] = useState(false);
@@ -150,6 +154,17 @@ export function PipelineVisualizer({ step }: PipelineVisualizerProps) {
                           {elapsed}s
                         </span>
                       )}
+                      {isActive &&
+                        s.key === "reranking" &&
+                        resultCount !== undefined && (
+                          <motion.span
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="ml-1.5 text-[10px] font-mono bg-[var(--accent-yellow)] border border-[var(--border)] rounded px-1.5 py-0.5"
+                          >
+                            {resultCount} results
+                          </motion.span>
+                        )}
                     </span>
                     {i < STEPS.length - 1 && (
                       <div

@@ -9,8 +9,26 @@ import { ResultsList } from "@/components/results-list";
 import { DomainClusters } from "@/components/domain-clusters";
 import { CostComparison } from "@/components/cost-comparison";
 import { BaselineComparison } from "@/components/baseline-comparison";
-import { useState } from "react";
-import { LayoutGrid, List } from "lucide-react";
+import { useState, useEffect, Suspense } from "react";
+import {
+  LayoutGrid,
+  List,
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+
+// Inner component that reads ?q= — must be inside <Suspense>
+function SearchParamSync({ onQuery }: { onQuery: (q: string) => void }) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q) onQuery(q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+}
 
 export default function Home() {
   const {
@@ -22,6 +40,7 @@ export default function Home() {
     step,
     error,
     search,
+    reset,
     isSearching,
     baselineDiff,
     baselineLoading,
@@ -29,13 +48,39 @@ export default function Home() {
     compareBaseline,
   } = useSearch();
 
+  const router = useRouter();
   const [view, setView] = useState<"list" | "clusters">("list");
+  const [howItWorksOpen, setHowItWorksOpen] = useState(false);
+
   const hasResults = results !== null;
   const showHero = !hasResults && step === "idle";
 
+  // Sync URL when search completes
+  useEffect(() => {
+    if (step === "done" && query) {
+      router.replace(`?q=${encodeURIComponent(query)}`, { scroll: false });
+    }
+  }, [step]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleReset = () => {
+    reset();
+    router.replace("/", { scroll: false });
+  };
+
+  // Called by SearchParamSync on mount if ?q= is present
+  const handleAutoSearch = (q: string) => {
+    setQuery(q);
+    search(q);
+  };
+
   return (
     <main className="min-h-screen px-4 pb-20">
-      {/* Hero — only visible before first search (Krug: don't make me think where to start) */}
+      {/* Sync ?q= param on mount */}
+      <Suspense fallback={null}>
+        <SearchParamSync onQuery={handleAutoSearch} />
+      </Suspense>
+
+      {/* Hero — only visible before first search */}
       <AnimatePresence mode="wait">
         {showHero && (
           <motion.div
@@ -74,6 +119,113 @@ export default function Home() {
                 No fancy search API required.
               </span>
             </motion.p>
+
+            {/* How it works — expandable */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="w-full max-w-2xl mt-8"
+            >
+              <button
+                onClick={() => setHowItWorksOpen((o) => !o)}
+                className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-[var(--fg)] transition-colors mx-auto"
+              >
+                {howItWorksOpen ? (
+                  <>
+                    How it works <ChevronUp className="w-4 h-4" />
+                  </>
+                ) : (
+                  <>
+                    How it works <ChevronDown className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+
+              <AnimatePresence>
+                {howItWorksOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {/* Step 1 */}
+                      <div className="nb-card p-4 !shadow-[3px_3px_0_var(--border)]">
+                        <div
+                          className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-[var(--border)] mb-2"
+                          style={{ background: "var(--accent-purple)" }}
+                        >
+                          <span className="text-xs font-bold">1</span>
+                        </div>
+                        <h3 className="font-bold text-sm mb-1">
+                          Query Expansion
+                        </h3>
+                        <p className="text-xs text-gray-500 leading-relaxed">
+                          Claude AI expands your query into semantic variants to
+                          maximize recall across different phrasings.
+                        </p>
+                      </div>
+
+                      {/* Step 2 */}
+                      <div className="nb-card p-4 !shadow-[3px_3px_0_var(--border)]">
+                        <div
+                          className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-[var(--border)] mb-2"
+                          style={{ background: "var(--accent-teal)" }}
+                        >
+                          <span className="text-xs font-bold">2</span>
+                        </div>
+                        <h3 className="font-bold text-sm mb-1">
+                          Bright Data SERP
+                        </h3>
+                        <p className="text-xs text-gray-500 leading-relaxed">
+                          We hit real Google results via{" "}
+                          <a
+                            href="https://brightdata.com/products/serp-api"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold text-[var(--fg)] underline underline-offset-2"
+                          >
+                            Bright Data&apos;s SERP API
+                          </a>{" "}
+                          — no cached index, no hallucinated links.
+                          ~$0.001/query.
+                        </p>
+                      </div>
+
+                      {/* Step 3 */}
+                      <div className="nb-card p-4 !shadow-[3px_3px_0_var(--border)]">
+                        <div
+                          className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-[var(--border)] mb-2"
+                          style={{ background: "var(--accent-yellow)" }}
+                        >
+                          <span className="text-xs font-bold">3</span>
+                        </div>
+                        <h3 className="font-bold text-sm mb-1">
+                          RRF Reranking
+                        </h3>
+                        <p className="text-xs text-gray-500 leading-relaxed">
+                          Reciprocal Rank Fusion merges results from all query
+                          variants. Better signal than any single ranking.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Cost math */}
+                    <div className="mt-3 nb-card p-3 !shadow-[3px_3px_0_var(--border)] bg-[var(--accent-yellow)] !border-[var(--border)]">
+                      <p className="text-xs font-semibold text-center">
+                        💰 This search costs ~$0.003 total.{" "}
+                        <span className="opacity-70">
+                          A fancy search API charges $0.01–$0.05 per query.
+                        </span>
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -89,16 +241,23 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="max-w-2xl mx-auto mb-3"
+            className="max-w-2xl mx-auto mb-3 flex items-center gap-3"
           >
             <button
-              onClick={() => window.location.reload()}
+              onClick={handleReset}
               className="text-xl font-bold tracking-tight hover:opacity-70 transition-opacity"
             >
               <span className="inline-block px-1.5 py-0.5 bg-[var(--accent-yellow)] border-2 border-[var(--border)] rounded-md text-sm -rotate-1 shadow-[2px_2px_0_var(--border)]">
                 un
               </span>
               <span className="text-base">fancy</span>
+            </button>
+            <button
+              onClick={handleReset}
+              className="flex items-center gap-1 text-xs font-semibold text-gray-400 hover:text-[var(--fg)] transition-colors"
+            >
+              <ArrowLeft className="w-3 h-3" />
+              New search
             </button>
           </motion.div>
         )}
@@ -118,7 +277,7 @@ export default function Home() {
       </motion.div>
 
       {/* Pipeline progress — shows only during search */}
-      <PipelineVisualizer step={step} />
+      <PipelineVisualizer step={step} resultCount={results?.results.length} />
 
       {/* Error — clear, no jargon */}
       <AnimatePresence>

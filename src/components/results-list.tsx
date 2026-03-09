@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ExternalLink, Layers } from "lucide-react";
+import { ExternalLink, Layers, Clipboard, ClipboardCheck } from "lucide-react";
+import { useState } from "react";
 import type { RankedResult } from "@/lib/types";
 
 interface ResultsListProps {
@@ -10,7 +11,18 @@ interface ResultsListProps {
 }
 
 export function ResultsList({ results, expandedQueries }: ResultsListProps) {
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
   if (results.length === 0) return null;
+
+  const handleCopy = (e: React.MouseEvent, url: string, i: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedIndex(i);
+      setTimeout(() => setCopiedIndex(null), 1500);
+    });
+  };
 
   return (
     <div className="space-y-3">
@@ -99,8 +111,22 @@ export function ResultsList({ results, expandedQueries }: ResultsListProps) {
               </div>
             </div>
 
-            {/* External link icon — obvious affordance */}
-            <ExternalLink className="w-4 h-4 text-gray-300 group-hover:text-[var(--accent-coral)] transition-colors shrink-0 mt-1" />
+            {/* Action icons — external link + copy URL */}
+            <div className="flex items-center gap-1.5 shrink-0 mt-1">
+              <button
+                onClick={(e) => handleCopy(e, result.url, i)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:text-[var(--accent-teal)]"
+                aria-label="Copy URL"
+                title="Copy URL"
+              >
+                {copiedIndex === i ? (
+                  <ClipboardCheck className="w-4 h-4 text-[var(--accent-teal)]" />
+                ) : (
+                  <Clipboard className="w-4 h-4 text-gray-300" />
+                )}
+              </button>
+              <ExternalLink className="w-4 h-4 text-gray-300 group-hover:text-[var(--accent-coral)] transition-colors" />
+            </div>
           </div>
         </motion.a>
       ))}

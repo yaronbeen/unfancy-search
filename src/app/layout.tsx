@@ -17,7 +17,33 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "unfancy — You don't need a fancy search API",
   description:
-    "A full-featured search engine built with SERP retrieval, LLM query expansion, and RRF reranking. No fancy vendor required.",
+    "A full-featured search engine built with Bright Data SERP retrieval, Claude AI query expansion, and RRF reranking. No fancy vendor required.",
+  icons: {
+    icon: "/favicon.svg",
+  },
+  openGraph: {
+    title: "unfancy — You don't need a fancy search API",
+    description:
+      "Build your own search pipeline with Bright Data SERP + Claude AI + RRF. ~$0.003/query vs $0.01–$0.05 for fancy APIs.",
+    url: "https://unfancy-search.netlify.app",
+    siteName: "unfancy",
+    images: [
+      {
+        url: "https://unfancy-search.netlify.app/og-image.svg",
+        width: 1200,
+        height: 630,
+        alt: "unfancy — You don't need a fancy search API",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "unfancy — You don't need a fancy search API",
+    description:
+      "Build your own search pipeline with Bright Data SERP + Claude AI + RRF. ~$0.003/query vs $0.01–$0.05 for fancy APIs.",
+    images: ["https://unfancy-search.netlify.app/og-image.svg"],
+  },
 };
 
 export default function RootLayout({

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#fffdf5"/>
+
+  <!-- Border frame shadow -->
+  <rect x="8" y="8" width="1184" height="614" rx="16" fill="#1a1a1a"/>
+  <!-- Border frame -->
+  <rect x="0" y="0" width="1184" height="614" rx="16" fill="#fffdf5" stroke="#1a1a1a" stroke-width="6"/>
+
+  <!-- "un" box shadow -->
+  <rect x="108" y="168" width="220" height="130" rx="16" fill="#1a1a1a"/>
+  <!-- "un" yellow box -->
+  <rect x="96" y="156" width="220" height="130" rx="16" fill="#ffe600" stroke="#1a1a1a" stroke-width="6" transform="rotate(-2 206 221)"/>
+  <!-- "un" text -->
+  <text x="206" y="238" font-family="system-ui, -apple-system, 'Helvetica Neue', sans-serif" font-weight="900" font-size="96" fill="#1a1a1a" text-anchor="middle" transform="rotate(-2 206 221)">un</text>
+
+  <!-- "fancy" text -->
+  <text x="560" y="248" font-family="system-ui, -apple-system, 'Helvetica Neue', sans-serif" font-weight="900" font-size="120" fill="#1a1a1a" text-anchor="middle">fancy</text>
+
+  <!-- Subtitle -->
+  <text x="592" y="320" font-family="system-ui, -apple-system, 'Helvetica Neue', sans-serif" font-weight="600" font-size="32" fill="#666666" text-anchor="middle">You don&apos;t need a fancy search API.</text>
+
+  <!-- Divider -->
+  <rect x="96" y="360" width="1000" height="4" rx="2" fill="#1a1a1a" opacity="0.12"/>
+
+  <!-- Pill badges -->
+  <!-- Bright Data SERP -->
+  <rect x="96" y="388" width="270" height="52" rx="10" fill="#4ecdc4" stroke="#1a1a1a" stroke-width="3"/>
+  <rect x="99" y="391" width="270" height="52" rx="10" fill="#1a1a1a" opacity="0.15"/>
+  <rect x="96" y="388" width="270" height="52" rx="10" fill="#4ecdc4" stroke="#1a1a1a" stroke-width="3"/>
+  <text x="231" y="421" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="22" fill="#1a1a1a" text-anchor="middle">Bright Data SERP</text>
+
+  <!-- Claude AI -->
+  <rect x="386" y="388" width="200" height="52" rx="10" fill="#a78bfa" stroke="#1a1a1a" stroke-width="3"/>
+  <text x="486" y="421" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="22" fill="#1a1a1a" text-anchor="middle">Claude AI</text>
+
+  <!-- RRF Reranking -->
+  <rect x="606" y="388" width="240" height="52" rx="10" fill="#ffe600" stroke="#1a1a1a" stroke-width="3"/>
+  <text x="726" y="421" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="22" fill="#1a1a1a" text-anchor="middle">RRF Reranking</text>
+
+  <!-- Cost callout -->
+  <text x="96" y="510" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="26" fill="#1a1a1a">~$0.003/query</text>
+  <text x="96" y="545" font-family="system-ui, -apple-system, sans-serif" font-weight="500" font-size="22" fill="#999999">vs $0.01–$0.05 for fancy APIs</text>
+
+  <!-- URL bottom right -->
+  <text x="1088" y="545" font-family="'Courier New', Courier, monospace" font-weight="600" font-size="20" fill="#999999" text-anchor="end">unfancy-search.netlify.app</text>
+</svg>
