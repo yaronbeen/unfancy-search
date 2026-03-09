@@ -34,20 +34,6 @@ export function FilterPanel({
   const [domainInput, setDomainInput] = useState("");
   const [excludeInput, setExcludeInput] = useState("");
 
-  const toggleEngine = (engine: "google" | "bing") => {
-    const current = filters.engines;
-    if (current.includes(engine)) {
-      if (current.length > 1) {
-        onUpdate(
-          "engines",
-          current.filter((e) => e !== engine),
-        );
-      }
-    } else {
-      onUpdate("engines", [...current, engine]);
-    }
-  };
-
   const addDomain = (type: "include" | "exclude") => {
     const input = type === "include" ? domainInput : excludeInput;
     const domain = input.trim().toLowerCase();
@@ -95,25 +81,11 @@ export function FilterPanel({
           Deep Research
         </motion.button>
 
-        {/* Quick engine pills */}
-        <div className="flex gap-1.5 ml-auto">
-          {(["google", "bing"] as const).map((engine) => (
-            <motion.button
-              key={engine}
-              onClick={() => toggleEngine(engine)}
-              className={`nb-btn nb-btn-sm text-xs capitalize ${
-                filters.engines.includes(engine)
-                  ? "!bg-[var(--accent-yellow)]"
-                  : "opacity-50"
-              }`}
-              whileTap={{ scale: 0.95 }}
-              disabled={isSearching}
-            >
-              <Globe className="w-3 h-3" />
-              {engine}
-            </motion.button>
-          ))}
-        </div>
+        {/* Engine label */}
+        <span className="ml-auto text-xs font-semibold text-gray-400 flex items-center gap-1">
+          <Globe className="w-3 h-3" />
+          Google
+        </span>
       </div>
 
       <AnimatePresence>

@@ -8,7 +8,6 @@ import { PipelineVisualizer } from "@/components/pipeline-visualizer";
 import { ResultsList } from "@/components/results-list";
 import { DomainClusters } from "@/components/domain-clusters";
 import { CostComparison } from "@/components/cost-comparison";
-import { BaselineComparison } from "@/components/baseline-comparison";
 import { useState, useEffect, Suspense } from "react";
 import {
   LayoutGrid,
@@ -42,10 +41,6 @@ export default function Home() {
     search,
     reset,
     isSearching,
-    baselineDiff,
-    baselineLoading,
-    baselineSnapshotId,
-    compareBaseline,
   } = useSearch();
 
   const router = useRouter();
@@ -360,13 +355,6 @@ export default function Home() {
               {/* Sidebar */}
               <div className="hidden lg:block w-72 shrink-0 space-y-4 sticky top-28">
                 <CostComparison meta={results.meta} />
-                <BaselineComparison
-                  diff={baselineDiff}
-                  isLoading={baselineLoading}
-                  onTriggerBaseline={() => compareBaseline()}
-                  snapshotId={baselineSnapshotId}
-                  hasResults={hasResults}
-                />
                 {view === "list" && results.clusters.length > 0 && (
                   <motion.div
                     initial={{ opacity: 0, y: 12 }}
