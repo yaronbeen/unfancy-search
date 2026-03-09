@@ -105,9 +105,6 @@ export function ResultsList({ results, expandedQueries }: ResultsListProps) {
                     {result.query_coverage}× match
                   </span>
                 )}
-                <span className="text-[10px] font-[family-name:var(--font-geist-mono)] text-gray-400">
-                  RRF {result.rrf_score.toFixed(4)}
-                </span>
               </div>
             </div>
 

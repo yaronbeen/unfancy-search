@@ -386,6 +386,18 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Footer — Powered by Bright Data */}
+      <footer className="fixed bottom-0 left-0 right-0 py-2 text-center bg-[var(--bg)] border-t border-gray-200/50">
+        <a
+          href="https://brightdata.com/products/serp-api"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[11px] text-gray-400 hover:text-[var(--fg)] transition-colors font-medium"
+        >
+          Powered by <span className="font-bold">Bright Data</span> SERP API
+        </a>
+      </footer>
     </main>
   );
 }
