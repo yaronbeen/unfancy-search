@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Radio, Shuffle, Check, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
 import type { PipelineStep } from "@/hooks/use-search";
 
 interface PipelineVisualizerProps {
@@ -29,7 +30,55 @@ const STEPS = [
   },
 ] as const;
 
+const WITTY_MESSAGES = [
+  "Crawling the real web, not a cached index...",
+  "No fancy API markup — raw SERP data incoming...",
+  "Bright Data doing the heavy lifting...",
+  "Your query is hitting actual Google results...",
+  "Worth the wait — no hallucinated links here...",
+];
+
 export function PipelineVisualizer({ step }: PipelineVisualizerProps) {
+  const [elapsed, setElapsed] = useState(0);
+  const [messageIndex, setMessageIndex] = useState(0);
+  const [showHint, setShowHint] = useState(false);
+
+  // Elapsed timer — runs only while step === "retrieving"
+  useEffect(() => {
+    if (step !== "retrieving") {
+      setElapsed(0);
+      setShowHint(false);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setElapsed((s) => s + 1);
+    }, 1000);
+
+    const hintTimer = setTimeout(() => {
+      setShowHint(true);
+    }, 5000);
+
+    return () => {
+      clearInterval(timer);
+      clearTimeout(hintTimer);
+    };
+  }, [step]);
+
+  // Rotating messages — cycles every 4s while step === "retrieving"
+  useEffect(() => {
+    if (step !== "retrieving") {
+      setMessageIndex(0);
+      return;
+    }
+
+    const rotator = setInterval(() => {
+      setMessageIndex((i) => (i + 1) % WITTY_MESSAGES.length);
+    }, 4000);
+
+    return () => clearInterval(rotator);
+  }, [step]);
+
   if (step === "idle" || step === "done") return null;
 
   const currentIdx = STEPS.findIndex((s) => s.key === step);
@@ -96,6 +145,11 @@ export function PipelineVisualizer({ step }: PipelineVisualizerProps) {
                       }`}
                     >
                       {s.label}
+                      {isActive && s.key === "retrieving" && elapsed > 0 && (
+                        <span className="ml-1 font-mono opacity-70">
+                          {elapsed}s
+                        </span>
+                      )}
                     </span>
                     {i < STEPS.length - 1 && (
                       <div
@@ -109,6 +163,33 @@ export function PipelineVisualizer({ step }: PipelineVisualizerProps) {
               })
             )}
           </div>
+
+          {/* Rotating witty messages + 90s hint — only during SERP retrieval */}
+          {step === "retrieving" && (
+            <div className="mt-3 space-y-1">
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={messageIndex}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 0.65, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.4 }}
+                  className="text-xs text-gray-500 italic"
+                >
+                  {WITTY_MESSAGES[messageIndex]}
+                </motion.p>
+              </AnimatePresence>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: showHint ? 0.55 : 0 }}
+                transition={{ duration: 0.6 }}
+                className="text-xs text-[var(--accent-coral)] font-medium"
+              >
+                Real SERP calls can take up to 90s — hang tight!
+              </motion.p>
+            </div>
+          )}
         </div>
       </motion.div>
     </AnimatePresence>

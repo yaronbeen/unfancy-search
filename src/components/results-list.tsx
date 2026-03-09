@@ -45,8 +45,9 @@ export function ResultsList({ results, expandedQueries }: ResultsListProps) {
           rel="noopener noreferrer"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
+          whileHover={{ y: -2, boxShadow: "5px 5px 0 var(--border)" }}
           transition={{
-            delay: i * 0.04,
+            delay: i * 0.06,
             type: "spring",
             stiffness: 400,
             damping: 30,
