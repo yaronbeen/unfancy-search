@@ -49,32 +49,44 @@ export function useSearch() {
       setError(null);
       setResults(null);
 
-      // Simulate pipeline steps for UX feedback
+      // Step 1: Dispatch to background function
       setStep("expanding");
-      await sleep(400);
-      setStep("retrieving");
 
       try {
-        const res = await fetch("/api/search", {
+        const jobRes = await fetch("/api/search", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            query: q,
-            ...filters,
-          }),
+          body: JSON.stringify({ query: q, ...filters }),
         });
 
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || `Search failed (${res.status})`);
+        if (!jobRes.ok) {
+          const data = await jobRes.json().catch(() => ({}));
+          throw new Error(data.error || `Search failed (${jobRes.status})`);
         }
 
-        setStep("reranking");
-        await sleep(300);
+        const { job_id } = await jobRes.json();
 
-        const data: SearchResponse = await res.json();
-        setResults(data);
-        setStep("done");
+        // Step 2: Poll for results
+        setStep("retrieving");
+
+        const deadline = Date.now() + 120_000;
+        while (Date.now() < deadline) {
+          await sleep(2500);
+          const statusRes = await fetch(`/api/search-status/${job_id}`);
+          const data = await statusRes.json();
+          if (data.status === "done") {
+            setStep("reranking");
+            await sleep(300);
+            setResults(data.result);
+            setStep("done");
+            return;
+          }
+          if (data.status === "error") {
+            throw new Error(data.error || "Search failed");
+          }
+          // still pending — keep polling
+        }
+        throw new Error("Search timed out after 120s");
       } catch (err) {
         setError(err instanceof Error ? err.message : "Search failed");
         setStep("error");
