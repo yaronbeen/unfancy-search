@@ -3,24 +3,19 @@ const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 /**
  * Expand a user query into multiple diverse sub-queries.
  *
- * Uses OpenAI if a key is available, otherwise falls back to
- * a rule-based expansion that still produces useful variety.
+ * Requires OPENAI_API_KEY to be set. Throws an error if the key is missing.
  */
 export async function expandQuery(
   query: string,
   count: number = 5,
 ): Promise<string[]> {
   const apiKey = process.env.OPENAI_API_KEY;
-
-  if (apiKey) {
-    try {
-      return await expandWithLLM(query, count, apiKey);
-    } catch (err) {
-      console.warn("LLM expansion failed, falling back to rules:", err);
-    }
+  if (!apiKey) {
+    throw new Error(
+      "OPENAI_API_KEY is not set — query expansion requires an OpenAI key",
+    );
   }
-
-  return expandWithRules(query, count);
+  return expandWithLLM(query, count, apiKey);
 }
 
 // ---------- LLM-based expansion (OpenAI) ----------
@@ -68,35 +63,4 @@ async function expandWithLLM(
   }
 
   return [query];
-}
-
-// ---------- Rule-based expansion (no API key needed) ----------
-
-const ANGLE_TEMPLATES = [
-  (q: string) => q, // original query
-  (q: string) => `best ${q}`,
-  (q: string) => `${q} guide`,
-  (q: string) => `${q} examples`,
-  (q: string) => `${q} comparison`,
-  (q: string) => `${q} alternatives`,
-  (q: string) => `how does ${q} work`,
-  (q: string) => `${q} pros and cons`,
-  (q: string) => `${q} tutorial`,
-  (q: string) => `${q} review 2025`,
-  (q: string) => `what is ${q}`,
-  (q: string) => `${q} vs`,
-  (q: string) => `top ${q}`,
-  (q: string) => `${q} explained`,
-  (q: string) => `${q} for beginners`,
-];
-
-function expandWithRules(query: string, count: number): string[] {
-  const q = query.toLowerCase().trim();
-  const expanded: string[] = [];
-
-  for (let i = 0; i < Math.min(count, ANGLE_TEMPLATES.length); i++) {
-    expanded.push(ANGLE_TEMPLATES[i](q));
-  }
-
-  return expanded;
 }

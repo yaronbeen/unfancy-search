@@ -9,16 +9,17 @@ interface CostComparisonProps {
   meta: SearchMeta;
 }
 
-// Competitor pricing (per request)
-const EXA_PER_REQUEST = 0.007;
-const TAVILY_PER_REQUEST = 0.008;
+// "Fancy search API" vendor pricing benchmarks (per request)
+// Based on publicly listed pricing from typical AI search API vendors
+const FANCY_API_LOW_PER_REQUEST = 0.007; // lower-end vendor pricing
+const FANCY_API_HIGH_PER_REQUEST = 0.015; // higher-end vendor pricing
 
 export function CostComparison({ meta }: CostComparisonProps) {
   const [animatedCost, setAnimatedCost] = useState(0);
   const actualCost = meta.estimated_cost_usd;
-  const exaCost = meta.queries_executed * EXA_PER_REQUEST;
-  const tavilyCost = meta.queries_executed * TAVILY_PER_REQUEST;
-  const savings = Math.round((1 - actualCost / exaCost) * 100);
+  const fancyLowCost = meta.queries_executed * FANCY_API_LOW_PER_REQUEST;
+  const fancyHighCost = meta.queries_executed * FANCY_API_HIGH_PER_REQUEST;
+  const savings = Math.round((1 - actualCost / fancyLowCost) * 100);
 
   // Count-up animation
   useEffect(() => {
@@ -79,19 +80,19 @@ export function CostComparison({ meta }: CostComparisonProps) {
         <div className="flex items-center justify-between text-xs text-gray-500">
           <span className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-gray-300" />
-            Exa (same queries)
+            Fancy API (low-end)
           </span>
           <span className="font-[family-name:var(--font-geist-mono)]">
-            ${exaCost.toFixed(4)}
+            ${fancyLowCost.toFixed(4)}
           </span>
         </div>
         <div className="flex items-center justify-between text-xs text-gray-500">
           <span className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-gray-300" />
-            Tavily (same queries)
+            Fancy API (high-end)
           </span>
           <span className="font-[family-name:var(--font-geist-mono)]">
-            ${tavilyCost.toFixed(4)}
+            ${fancyHighCost.toFixed(4)}
           </span>
         </div>
       </div>

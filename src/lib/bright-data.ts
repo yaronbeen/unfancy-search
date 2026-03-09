@@ -10,10 +10,13 @@ interface SerpRequestParams {
 }
 
 interface BrightDataOrganic {
-  link: string;
+  link?: string; // Bright Data format:json wrapper uses 'link'
+  url?: string; // brd_json=1 + format:raw uses 'url'
   title: string;
   description?: string;
-  rank: number;
+  snippet?: string;
+  rank?: number;
+  position?: number;
   global_rank?: number;
   source?: string;
 }
@@ -36,11 +39,14 @@ function buildSearchUrl(
   const q = encodeURIComponent(query);
 
   if (engine === "bing") {
-    return `https://www.bing.com/search?q=${q}&count=${numResults}&cc=${country}`;
+    // Bing still supports count parameter
+    return `https://www.bing.com/search?q=${q}&count=${numResults}&cc=${country}&setlang=en`;
   }
 
-  // Google
-  return `https://www.google.com/search?q=${q}&gl=${country}&num=${numResults}`;
+  // Google: num param is dead since Sep 2025.
+  // brd_json=1 tells Bright Data to parse the HTML into structured JSON.
+  // pws=0 = non-personalized results, hl=en = English interface.
+  return `https://www.google.com/search?q=${q}&gl=${country}&hl=en&pws=0&brd_json=1`;
 }
 
 export async function fetchSerp(
@@ -71,7 +77,9 @@ export async function fetchSerp(
     body: JSON.stringify({
       zone,
       url: searchUrl,
-      format: "json",
+      // Google: use 'raw' so brd_json=1 parsed JSON is returned directly.
+      // Bing: use 'json' for Bright Data's own wrapper format.
+      format: params.search_engine === "google" ? "raw" : "json",
     }),
   });
 
@@ -80,17 +88,26 @@ export async function fetchSerp(
     throw new Error(`SERP API error ${res.status}: ${text}`);
   }
 
-  const data = (await res.json()) as BrightDataSerpResponse;
+  let data: BrightDataSerpResponse;
+  try {
+    data = (await res.json()) as BrightDataSerpResponse;
+  } catch {
+    console.error("SERP response was not valid JSON");
+    return [];
+  }
 
   const results: SerpResult[] = [];
 
   if (data.organic) {
     for (const item of data.organic) {
+      // Handle both field names: brd_json=1 uses 'url', format:json uses 'link'
+      const url = item.url || item.link || "";
+      if (!url) continue;
       results.push({
         title: item.title || "",
-        url: item.link || "",
-        description: item.description || "",
-        position: item.rank || results.length + 1,
+        url,
+        description: item.description || item.snippet || "",
+        position: item.position ?? item.rank ?? results.length + 1,
         source_engine: params.search_engine,
         source_query: params.query,
       });
