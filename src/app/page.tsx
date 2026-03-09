@@ -8,6 +8,8 @@ import { PipelineVisualizer } from "@/components/pipeline-visualizer";
 import { ResultsList } from "@/components/results-list";
 import { DomainClusters } from "@/components/domain-clusters";
 import { CostComparison } from "@/components/cost-comparison";
+import { BaselineComparisonPanel } from "@/components/baseline-comparison";
+import { useBaseline } from "@/hooks/use-baseline";
 import { useState, useEffect, Suspense } from "react";
 import {
   LayoutGrid,
@@ -42,6 +44,14 @@ export default function Home() {
     reset,
     isSearching,
   } = useSearch();
+
+  const {
+    comparison,
+    isCollecting,
+    collectError,
+    collectBaseline,
+    baselineAge,
+  } = useBaseline(query, results?.results ?? null);
 
   const router = useRouter();
   const [view, setView] = useState<"list" | "clusters">("list");
@@ -364,6 +374,14 @@ export default function Home() {
                     <DomainClusters clusters={results.clusters} />
                   </motion.div>
                 )}
+                <BaselineComparisonPanel
+                  comparison={comparison}
+                  isCollecting={isCollecting}
+                  collectError={collectError}
+                  baselineAge={baselineAge}
+                  hasResults={hasResults}
+                  onCollect={collectBaseline}
+                />
               </div>
             </div>
 
@@ -371,6 +389,15 @@ export default function Home() {
             <div className="lg:hidden mt-6">
               <CostComparison meta={results.meta} />
             </div>
+            {/* Mobile baseline — below cost */}
+            <BaselineComparisonPanel
+              comparison={comparison}
+              isCollecting={isCollecting}
+              collectError={collectError}
+              baselineAge={baselineAge}
+              hasResults={hasResults}
+              onCollect={collectBaseline}
+            />
           </motion.div>
         )}
       </AnimatePresence>

@@ -12,11 +12,11 @@ I built this to prove it.
 
 ## What This Is
 
-A full-featured search engine with query expansion, multi-engine retrieval, deduplication, reranking, domain clustering, and filters.
+A full-featured search engine with query expansion, SERP retrieval, deduplication, reranking, domain clustering, and filters.
 
 The kind of thing you'd pay a "fancy" search API vendor for.
 
-Except this one costs **$0.003 per search** instead of $0.01–$0.05. And you own every line.
+Except this one costs **$0.002–$0.005 per search** instead of $0.01–$0.05. And you own every line.
 
 **[Live Demo →](https://unfancy-search.netlify.app)**
 
@@ -28,7 +28,7 @@ Here's what happens when you call a fancy search API:
 
 ```
 1. Your query hits an LLM that rewrites it into sub-queries
-2. Those sub-queries hit a SERP scraper (yes, Google/Bing — same as everyone)
+2. Those sub-queries hit a SERP scraper (yes, Google — same as everyone)
 3. Results get deduplicated and reranked
 4. You get clean JSON back
 ```
@@ -46,7 +46,7 @@ The "moat" is marketing.
 | Layer                 | What it does                                          | File                          |
 | --------------------- | ----------------------------------------------------- | ----------------------------- |
 | **Query Expansion**   | LLM rewrites your query into diverse sub-queries      | `src/lib/query-expansion.ts`  |
-| **SERP Retrieval**    | Fan-out search across Google + Bing via Bright Data   | `src/lib/bright-data.ts`      |
+| **SERP Retrieval**    | Search Google via Bright Data SERP API                | `src/lib/bright-data.ts`      |
 | **Reranking (RRF)**   | Reciprocal Rank Fusion across all sub-query results   | `src/lib/rerank.ts`           |
 | **Deduplication**     | Canonical URL normalization, tracking param stripping | `src/lib/dedupe.ts`           |
 | **Domain Clustering** | Group results by domain, enforce diversity            | `src/lib/cluster.ts`          |
@@ -58,13 +58,13 @@ The reranking implementation is 15 lines of TypeScript. Fifteen. Go look at it.
 
 ## The Math That Should Make You Angry
 
-|                            | This project | Fancy API (low-end) | Fancy API (high-end) |
-| -------------------------- | ------------ | ------------------- | -------------------- |
-| **Cost per search**        | ~$0.003      | ~$0.01              | ~$0.05               |
-| **Cost per 1K searches**   | ~$3          | ~$10                | ~$50                 |
-| **You own the code**       | Yes          | No                  | No                   |
-| **Vendor lock-in**         | None         | Yes                 | Yes                  |
-| **Can customize pipeline** | Everything   | Nothing             | Nothing              |
+|                            | This project  | Fancy API (low-end) | Fancy API (high-end) |
+| -------------------------- | ------------- | ------------------- | -------------------- |
+| **Cost per search**        | ~$0.002-0.005 | ~$0.01              | ~$0.05               |
+| **Cost per 1K searches**   | ~$2-5         | ~$10                | ~$50                 |
+| **You own the code**       | Yes           | No                  | No                   |
+| **Vendor lock-in**         | None          | Yes                 | Yes                  |
+| **Can customize pipeline** | Everything    | Nothing             | Nothing              |
 
 The SERP retrieval (the actual hard part) costs $1.50 per 1,000 requests through [Bright Data](https://get.brightdata.com/1tndi4600b25). The query expansion is a single Claude Haiku call — pennies. The reranking is free because it runs in your own code.
 
@@ -111,15 +111,18 @@ That's it. You now have a search API that does what the fancy ones do.
 
 ## Features
 
-- **Multi-engine search** — Google, Bing, or both simultaneously
+- **Google SERP retrieval** — Real Google results via [Bright Data SERP API](https://get.brightdata.com/1tndi4600b25), not a cached index
 - **Query expansion** — Claude AI generates diverse sub-queries to cover more ground
 - **Reciprocal Rank Fusion** — Results appearing across multiple sub-queries rank higher
 - **Domain clustering** — See which domains dominate your results
 - **Domain diversity** — No single source hijacks the top positions
-- **Filters** — Include/exclude domains, pick engines, choose geo, set result count
+- **Filters** — Include/exclude domains, choose geo, set result count
 - **Research mode** — Deeper retrieval with 12 sub-queries instead of 5
 - **Cost transparency** — Every search shows you exactly what it cost
 - **URL sharing** — Share any search via `?q=` URL parameter
+- **Async pipeline** — Background Functions handle long-running SERP calls (up to 90s)
+- **Baseline comparison** — Store a historical snapshot via [Bright Data Datasets API](https://get.brightdata.com/1tndi4600b25), then see what's new, gone, or persistent across searches
+- **AI expansion toggle** — Turn LLM query expansion on/off (off by default for raw SERP speed)
 
 ---
 
@@ -163,29 +166,49 @@ That's it. 15 lines. This is what you're paying a markup for.
 
 ---
 
+## Baseline Comparison (Datasets API)
+
+Fancy search APIs don't give you historical comparison. This project does.
+
+Click **"Collect Baseline"** in the sidebar after a search. The app triggers the [Bright Data Datasets API](https://get.brightdata.com/1tndi4600b25) to collect a SERP snapshot for your query. On future searches, it compares live results against the stored baseline:
+
+- **New sources** — URLs appearing in live results but not in the baseline
+- **Gone sources** — URLs that were in the baseline but have dropped out
+- **Persistent** — URLs appearing in both
+
+Refresh your baseline daily or weekly to track how search results evolve. Useful for SEO monitoring, competitive research, or any use case where result drift matters.
+
+---
+
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── page.tsx                     # Search UI
+│   ├── page.tsx                     # Search UI + baseline comparison
 │   ├── layout.tsx                   # Root layout + OG metadata
 │   └── api/
-│       ├── search/route.ts          # POST — dispatches to background function
-│       ├── search-status/[jobId]/   # GET — polls for results via Netlify Blobs
-│       └── baseline/route.ts        # POST — Bright Data Datasets comparison
+│       ├── search/route.ts          # POST — dispatches search to background
+│       ├── search-status/[jobId]/   # GET — polls for search results
+│       ├── baseline/route.ts        # POST trigger + GET stored baseline
+│       └── baseline-status/[id]/    # GET — polls for baseline collection
 ├── lib/
-│   ├── bright-data.ts               # SERP API client
+│   ├── bright-data.ts               # Bright Data SERP API client
+│   ├── datasets.ts                  # Bright Data Datasets API + comparison
 │   ├── query-expansion.ts           # Claude Haiku query expansion
 │   ├── rerank.ts                    # Reciprocal Rank Fusion
 │   ├── dedupe.ts                    # URL canonicalization
 │   ├── cluster.ts                   # Domain clustering + diversity
-│   ├── datasets.ts                  # Bright Data Datasets API
 │   └── types.ts                     # TypeScript types
-├── components/                      # UI components
-└── hooks/                           # React hooks
+├── components/
+│   ├── baseline-comparison.tsx      # Baseline vs live comparison UI
+│   └── ...                          # Search box, filters, results, etc.
+└── hooks/
+    ├── use-search.ts                # Search state management
+    └── use-baseline.ts              # Baseline state + polling
 netlify/functions/
-└── search-background.mts           # Background Function — runs full pipeline
+├── search-background.mts           # Search pipeline background function
+└── baseline-background.mts         # Datasets collection background function
 ```
 
 ---
@@ -212,7 +235,7 @@ But for most search features in most apps? Query expansion + SERP + reranking ge
 
 ## Testing
 
-This project has comprehensive unit tests covering the entire pipeline:
+This project has unit tests covering the entire pipeline:
 
 ```bash
 # Run all tests
@@ -228,46 +251,8 @@ Tests cover:
 - **Reciprocal Rank Fusion** — score calculation, multi-list fusion, coverage tracking
 - **Domain clustering** — grouping, sorting, diversity enforcement
 - **Query expansion** — LLM integration (mocked)
-- **SERP retrieval** — API client, fan-out execution, error handling
+- **SERP retrieval** — API client, error handling
 - **API route** — full pipeline integration, filters, error responses
-
----
-
-## Baseline Comparison (Bright Data Datasets)
-
-The app includes a baseline layer powered by the [Bright Data Datasets API](https://get.brightdata.com/1tndi4600b25).
-
-After running a search, click **"Compare with baseline"** in the sidebar to:
-
-- Trigger a SERP collection via Bright Data Datasets API
-- Download the snapshot once ready
-- See which sources are **new** since the baseline and which have **gone**
-
-This is useful for tracking how search results drift over time. Refresh the baseline daily or weekly to keep it current.
-
-### Setup
-
-Add your dataset ID to `.env`:
-
-```env
-BRIGHT_DATA_DATASET_ID=your_dataset_id_here
-```
-
-Create a Web Scraper (SERP type) in your [Bright Data dashboard](https://get.brightdata.com/1tndi4600b25) to get a dataset ID.
-
-### API
-
-```
-POST /api/baseline
-{ "action": "trigger", "queries": ["..."], "engine": "google", "geo": "us" }
-→ { "snapshot_id": "s_abc123", "status": "collecting" }
-
-POST /api/baseline
-{ "action": "compare", "snapshot_id": "s_abc123", "live_results": [...] }
-→ { "new_sources": [...], "missing_sources": [...], "persistent_sources": [...] }
-```
-
-Baseline snapshots can be refreshed on any schedule — daily or weekly works well for most use cases.
 
 ---
 
@@ -280,11 +265,11 @@ A Claude Code skill is included that enables Claude to generate this entire pipe
 The skill covers:
 
 - Scaffolding the Next.js + TypeScript project
-- Building all six pipeline modules (types, query expansion, SERP client, dedupe, reranking, clustering)
-- Wiring the `/api/search` and `/api/baseline` routes
+- Building all pipeline modules (types, query expansion, SERP client, dedupe, reranking, clustering)
+- Wiring the `/api/search` route with async background processing
 - Setting up Tailwind CSS + Framer Motion UI components
 - Configuring vitest and writing tests
-- Deploying to Netlify
+- Deploying to Netlify with Background Functions
 
 To use it, copy the `.claude/skills/` directory into your project or `~/.claude/skills/` for global access. Then invoke `/unfancy-search-pipeline` in Claude Code.
 

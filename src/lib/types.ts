@@ -19,6 +19,7 @@ export interface SearchRequest {
   geo: string;
   num_results: number;
   research_mode: boolean;
+  llm_expansion?: boolean;
   domain_include: string[];
   domain_exclude: string[];
 }

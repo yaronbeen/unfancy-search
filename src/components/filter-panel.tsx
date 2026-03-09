@@ -1,7 +1,14 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { SlidersHorizontal, X, Globe, Monitor, Zap } from "lucide-react";
+import {
+  SlidersHorizontal,
+  X,
+  Globe,
+  Monitor,
+  Zap,
+  Sparkles,
+} from "lucide-react";
 import { useState } from "react";
 import type { SearchFilters } from "@/hooks/use-search";
 
@@ -79,6 +86,19 @@ export function FilterPanel({
         >
           <Zap className="w-3.5 h-3.5" />
           Deep Research
+        </motion.button>
+
+        {/* AI Expansion toggle */}
+        <motion.button
+          onClick={() => onUpdate("llm_expansion", !filters.llm_expansion)}
+          className={`nb-btn nb-btn-sm !gap-1.5 text-xs ${
+            filters.llm_expansion ? "!bg-[var(--accent-teal)] text-white" : ""
+          }`}
+          whileTap={{ scale: 0.95 }}
+          disabled={isSearching}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          AI Expansion
         </motion.button>
 
         {/* Engine label */}

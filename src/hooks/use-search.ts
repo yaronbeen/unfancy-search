@@ -15,6 +15,7 @@ export interface SearchFilters {
   geo: string;
   num_results: number;
   research_mode: boolean;
+  llm_expansion: boolean;
   domain_include: string[];
   domain_exclude: string[];
 }
@@ -23,6 +24,7 @@ const DEFAULT_FILTERS: SearchFilters = {
   geo: "us",
   num_results: 10,
   research_mode: false,
+  llm_expansion: false,
   domain_include: [],
   domain_exclude: [],
 };

@@ -24,11 +24,16 @@ export default async (req: Request, context: Context) => {
   try {
     const body = await req.json();
     jobId = body.job_id;
-    const { query, engines, geo, num_results, research_mode, domain_include, domain_exclude } = body;
+    const { query, engines, geo, num_results, research_mode, llm_expansion, domain_include, domain_exclude } = body;
 
     const start = Date.now();
-    const expansionCount = research_mode ? 12 : 3;
-    const expandedQueries = await expandQuery(query, expansionCount);
+    let expandedQueries: string[];
+    if (llm_expansion) {
+      const expansionCount = research_mode ? 12 : 3;
+      expandedQueries = await expandQuery(query, expansionCount);
+    } else {
+      expandedQueries = [query];
+    }
 
     const rawResults = await fetchSerpFanOut(
       expandedQueries,
@@ -56,7 +61,7 @@ export default async (req: Request, context: Context) => {
     const diverse = applyDomainDiversity(ranked);
     const clusters = clusterByDomain(diverse);
     const serpRequestCount = expandedQueries.length * (engines?.length ?? 1);
-    const estimatedCost = serpRequestCount * SERP_COST_PER_REQUEST + LLM_COST_PER_CALL;
+    const estimatedCost = serpRequestCount * SERP_COST_PER_REQUEST + (llm_expansion ? LLM_COST_PER_CALL : 0);
 
     const result = {
       query,

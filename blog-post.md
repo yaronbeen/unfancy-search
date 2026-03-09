@@ -2,11 +2,11 @@
 
 I spent three hours last month looking at "AI search API" pricing pages.
 
-Exa. Tavily. Perplexity API. A handful of others. They all have the same pitch: structured JSON, neural retrieval, query understanding, developer-friendly. Prices range from $7 to $15 per thousand queries. Some charge per "credit" with multipliers that make the math deliberately hard to follow.
+One "AI search API" after another. They all have the same pitch: structured JSON, neural retrieval, query understanding, developer-friendly. Prices range from $7 to $15 per thousand queries. Some charge per "credit" with multipliers that make the math deliberately hard to follow.
 
 I kept thinking: what are they actually doing?
 
-So I built the same thing myself. It took a weekend. It costs $0.008 per search instead of $0.035. And I own every line of it.
+So I built the same thing myself. It took a weekend. It costs $0.002-0.005 per search instead of $0.035. And I own every line of it.
 
 This post is about what I built, how it works, and why you probably don't need a fancy search API either.
 
@@ -39,14 +39,14 @@ Here is how it works:
 
 ### Step 1: Query Expansion
 
-Given a user query like "best laptops for developers", the app generates 5-12 sub-queries using OpenAI GPT-4o-mini. Something like:
+Given a user query like "best laptops for developers", the app generates 3-12 sub-queries using Claude Haiku. Something like:
 
 - "best laptops for software engineers 2024"
 - "developer laptop recommendations Linux"
 - "MacBook vs ThinkPad for programming"
 - "high RAM laptop for coding"
 
-If you do not have an OpenAI key, a rule-based fallback generates variations automatically. The LLM version is better but the fallback works fine for most queries.
+If you do not have an Anthropic key, you can disable AI expansion and search with just your raw query. The LLM version is better but a single query works fine for most searches.
 
 ### Step 2: SERP Fan-Out via Bright Data
 
@@ -120,16 +120,16 @@ The `/api/search` endpoint returns the final ranked results plus metadata: expan
 
 Here is what this actually costs per search:
 
-|                         | This project | Fancy search API vendors |
-| ----------------------- | ------------ | ------------------------ |
-| Cost per search         | ~$0.008      | ~$0.035-0.05             |
-| Cost per 1,000 searches | ~$8          | ~$35-50                  |
-| You own the code        | Yes          | No                       |
-| Vendor lock-in          | None         | Yes                      |
+|                         | This project  | Fancy search API vendors |
+| ----------------------- | ------------- | ------------------------ |
+| Cost per search         | ~$0.002-0.005 | ~$0.035-0.05             |
+| Cost per 1,000 searches | ~$2-5         | ~$35-50                  |
+| You own the code        | Yes           | No                       |
+| Vendor lock-in          | None          | Yes                      |
 
-The SERP retrieval costs $1.50 per 1,000 requests through Bright Data. With 5 sub-queries per search, that is $0.0075 per search for retrieval. The LLM query expansion is a single GPT-4o-mini call, roughly $0.00015. The reranking is free because it runs in your own code.
+The SERP retrieval costs $1.50 per 1,000 requests through Bright Data. With 3 sub-queries per search (AI expansion on), that is $0.0045 per search for retrieval. The LLM query expansion is a single Claude Haiku call, roughly $0.00015. The reranking is free because it runs in your own code.
 
-Total: about $0.008 per search.
+Total: about $0.005 per search with AI expansion on. Without it, just $0.0015 per search.
 
 In most cases, SERP is all you need, and it can cost roughly 90% less than a fancy search API because you are not paying for a wrapper and credit multipliers.
 
@@ -139,13 +139,31 @@ In most cases, SERP is all you need, and it can cost roughly 90% less than a fan
 
 One thing fancy search APIs do not give you is historical comparison. You cannot easily ask "what changed since last week?"
 
-I added a baseline layer using the Bright Data Datasets API. The idea is simple: trigger a SERP collection for your queries, store the snapshot, then compare future live results against it.
+I added a baseline layer using the Bright Data Datasets API. The flow is simple:
 
-The UI shows three categories after comparison:
+1. You do a search and get live results
+2. Click "Collect Baseline" which triggers the Datasets API to collect a SERP snapshot
+3. The snapshot gets stored as your baseline
+4. On future searches for the same query, the app compares live results against the baseline
 
-- **New sources**: URLs appearing in live results but not in the baseline
-- **Gone sources**: URLs that were in the baseline but have dropped out
-- **Persistent sources**: URLs appearing in both
+The UI shows three categories in the sidebar:
+
+- **New sources** (teal): URLs appearing in live results but not in the baseline
+- **Gone sources** (coral): URLs that were in the baseline but have dropped out
+- **Persistent** (yellow): URLs appearing in both
+
+```typescript
+// One API call triggers the collection
+const res = await fetch(
+  `https://api.brightdata.com/datasets/v3/trigger?dataset_id=${datasetId}&format=json`,
+  {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiToken}` },
+    body: JSON.stringify([{ keyword: query, country: geo }]),
+  },
+);
+const { snapshot_id } = await res.json();
+```
 
 You can refresh the baseline daily or weekly. For SEO monitoring, competitive research, or any use case where you care about result drift, this is genuinely useful. And it is built on the same Bright Data infrastructure, so there is no new vendor to add.
 
@@ -162,7 +180,7 @@ pnpm install
 cp .env.example .env
 ```
 
-Fill in your Bright Data API token and SERP zone name. OpenAI key is optional. Then:
+Fill in your Bright Data API token and SERP zone name. Anthropic key is optional (enables AI query expansion). Then:
 
 ```bash
 pnpm dev
@@ -170,7 +188,7 @@ pnpm dev
 
 Open `http://localhost:3000`. Search for anything.
 
-The project has 110 unit tests covering the full pipeline. Run them with `pnpm test`.
+The project has full unit test coverage across the pipeline. Run them with `pnpm test`.
 
 ---
 
