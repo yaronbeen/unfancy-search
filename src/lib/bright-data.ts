@@ -1,6 +1,6 @@
 import { SerpResult } from "./types";
 
-const SERP_API_BASE = "https://api.brightdata.com/serp/req";
+const API_BASE = "https://api.brightdata.com/request";
 
 interface SerpRequestParams {
   query: string;
@@ -9,16 +9,38 @@ interface SerpRequestParams {
   num_results?: number;
 }
 
+interface BrightDataOrganic {
+  link: string;
+  title: string;
+  description?: string;
+  rank: number;
+  global_rank?: number;
+  source?: string;
+}
+
 interface BrightDataSerpResponse {
-  organic?: Array<{
-    title: string;
-    link: string;
-    description: string;
-    rank: number;
-  }>;
+  organic?: BrightDataOrganic[];
   general?: {
     search_engine: string;
+    query: string;
+    results_cnt?: number;
   };
+}
+
+function buildSearchUrl(
+  query: string,
+  engine: "google" | "bing",
+  country: string,
+  numResults: number,
+): string {
+  const q = encodeURIComponent(query);
+
+  if (engine === "bing") {
+    return `https://www.bing.com/search?q=${q}&count=${numResults}&cc=${country}`;
+  }
+
+  // Google
+  return `https://www.google.com/search?q=${q}&gl=${country}&num=${numResults}`;
 }
 
 export async function fetchSerp(
@@ -29,22 +51,28 @@ export async function fetchSerp(
     throw new Error("BRIGHT_DATA_API_TOKEN is not set");
   }
 
-  const body = JSON.stringify([
-    {
-      query: params.query,
-      search_engine: params.search_engine,
-      country: params.country || "us",
-      num: params.num_results || 10,
-    },
-  ]);
+  const zone = process.env.BRIGHT_DATA_SERP_ZONE || "serp_api1";
+  const country = params.country || "us";
+  const numResults = params.num_results || 10;
 
-  const res = await fetch(SERP_API_BASE, {
+  const searchUrl = buildSearchUrl(
+    params.query,
+    params.search_engine,
+    country,
+    numResults,
+  );
+
+  const res = await fetch(API_BASE, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiToken}`,
       "Content-Type": "application/json",
     },
-    body,
+    body: JSON.stringify({
+      zone,
+      url: searchUrl,
+      format: "json",
+    }),
   });
 
   if (!res.ok) {
@@ -52,13 +80,12 @@ export async function fetchSerp(
     throw new Error(`SERP API error ${res.status}: ${text}`);
   }
 
-  const data = (await res.json()) as BrightDataSerpResponse[];
+  const data = (await res.json()) as BrightDataSerpResponse;
 
   const results: SerpResult[] = [];
 
-  for (const response of data) {
-    if (!response.organic) continue;
-    for (const item of response.organic) {
+  if (data.organic) {
+    for (const item of data.organic) {
       results.push({
         title: item.title || "",
         url: item.link || "",

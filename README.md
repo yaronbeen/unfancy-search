@@ -78,7 +78,7 @@ You're paying vendors a 4-5x markup for a wrapper.
 
 - Node.js 18+
 - A [Bright Data](https://brightdata.com) account (SERP API access)
-- An [OpenAI](https://platform.openai.com) API key
+- An [OpenAI](https://platform.openai.com) API key (optional — rule-based expansion works without it)
 
 ### Steps
 
@@ -196,7 +196,7 @@ But for most search features in most apps? Query expansion + SERP + reranking ge
 
 ## Tech Stack
 
-- **Next.js 15** (App Router) + **TypeScript**
+- **Next.js 16** (App Router) + **TypeScript**
 - **Bright Data SERP API** — retrieval backbone
 - **OpenAI GPT-4o-mini** — query expansion
 - **Tailwind CSS** — styling
@@ -209,3 +209,26 @@ But for most search features in most apps? Query expansion + SERP + reranking ge
 MIT. Take it. Build on it. Ship it.
 
 If this saved you from paying for a fancy search API, that's the whole point.
+
+---
+
+## Testing
+
+This project has comprehensive unit tests covering the entire pipeline:
+
+```bash
+# Run all tests
+pnpm test
+
+# Run tests in watch mode
+pnpm test:watch
+```
+
+Tests cover:
+
+- **URL canonicalization** — tracking param removal, www stripping, dedup logic
+- **Reciprocal Rank Fusion** — score calculation, multi-list fusion, coverage tracking
+- **Domain clustering** — grouping, sorting, diversity enforcement
+- **Query expansion** — rule-based fallback, LLM integration (mocked)
+- **SERP retrieval** — API client, fan-out execution, error handling
+- **API route** — full pipeline integration, filters, error responses

@@ -7,6 +7,7 @@ import type { SearchRequest, SearchResponse, SerpResult } from "@/lib/types";
 
 const SERP_COST_PER_REQUEST = 0.0015; // $1.50 / 1000
 const LLM_COST_PER_CALL = 0.00015; // approximate gpt-4o-mini cost
+const HAS_LLM = !!process.env.OPENAI_API_KEY;
 
 export async function POST(request: NextRequest) {
   const start = Date.now();
@@ -73,7 +74,8 @@ export async function POST(request: NextRequest) {
     // Cost calculation
     const serpRequestCount = expandedQueries.length * engines.length;
     const estimatedCost =
-      serpRequestCount * SERP_COST_PER_REQUEST + LLM_COST_PER_CALL;
+      serpRequestCount * SERP_COST_PER_REQUEST +
+      (HAS_LLM ? LLM_COST_PER_CALL : 0);
 
     const response: SearchResponse = {
       query,

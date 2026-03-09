@@ -1,26 +1,192 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #fffdf5;
+  --fg: #1a1a1a;
+  --surface: #ffffff;
+  --border: #1a1a1a;
+  --accent-yellow: #ffe600;
+  --accent-coral: #ff6b6b;
+  --accent-teal: #4ecdc4;
+  --accent-purple: #a78bfa;
+  --accent-lime: #bfff00;
+  --shadow-offset: 4px;
+  --border-width: 3px;
+  --radius: 12px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-accent-yellow: var(--accent-yellow);
+  --color-accent-coral: var(--accent-coral);
+  --color-accent-teal: var(--accent-teal);
+  --color-accent-purple: var(--accent-purple);
+  --color-accent-lime: var(--accent-lime);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--accent-yellow);
+  color: var(--fg);
+}
+
+/* Neo-brutal card base */
+.nb-card {
+  background: var(--surface);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--border);
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.nb-card:hover {
+  box-shadow: calc(var(--shadow-offset) + 2px) calc(var(--shadow-offset) + 2px)
+    0 var(--border);
+  transform: translate(-1px, -1px);
+}
+
+/* Neo-brutal button */
+.nb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: var(--surface);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--border);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  user-select: none;
+}
+
+.nb-btn:hover {
+  box-shadow: calc(var(--shadow-offset) - 2px) calc(var(--shadow-offset) - 2px)
+    0 var(--border);
+  transform: translate(2px, 2px);
+}
+
+.nb-btn:active {
+  box-shadow: 0 0 0 var(--border);
+  transform: translate(4px, 4px);
+}
+
+.nb-btn-primary {
+  background: var(--accent-yellow);
+}
+
+.nb-btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-width: 2px;
+  box-shadow: 3px 3px 0 var(--border);
+  border-radius: 8px;
+}
+
+.nb-btn-sm:hover {
+  box-shadow: 1px 1px 0 var(--border);
+  transform: translate(2px, 2px);
+}
+
+/* Neo-brutal input */
+.nb-input {
+  background: var(--surface);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  font-size: 16px;
+  outline: none;
+  transition: box-shadow 0.15s ease;
+  width: 100%;
+}
+
+.nb-input:focus {
+  box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--accent-yellow);
+}
+
+.nb-input::placeholder {
+  color: #999;
+}
+
+/* Neo-brutal badge */
+.nb-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: var(--accent-yellow);
+}
+
+/* Neo-brutal toggle */
+.nb-toggle {
+  appearance: none;
+  width: 44px;
+  height: 24px;
+  background: #e0e0e0;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.nb-toggle::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  top: 1px;
+  left: 2px;
+  transition: transform 0.2s ease;
+}
+
+.nb-toggle:checked {
+  background: var(--accent-yellow);
+}
+
+.nb-toggle:checked::after {
+  transform: translateX(18px);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
 }
