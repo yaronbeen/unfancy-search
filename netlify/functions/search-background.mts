@@ -8,8 +8,17 @@ import { clusterByDomain, applyDomainDiversity } from "../../src/lib/cluster.js"
 const SERP_COST_PER_REQUEST = 0.0015;
 const LLM_COST_PER_CALL = 0.00015;
 
+function getJobStore() {
+  const siteID = process.env.NETLIFY_SITE_ID ?? "f566d9dd-b740-4ecf-afcd-2e962bda6e7a";
+  const token = process.env.NETLIFY_TOKEN;
+  if (token) {
+    return getStore({ name: "search-jobs", siteID, token });
+  }
+  // fallback: rely on auto-injected context (works in regular functions)
+  return getStore("search-jobs");
+}
+
 export default async (req: Request, context: Context) => {
-  const store = getStore("search-jobs");
   let jobId: string | undefined;
 
   try {
@@ -65,15 +74,19 @@ export default async (req: Request, context: Context) => {
       },
     };
 
+    const store = getJobStore();
     await store.setJSON(jobId!, { status: "done", result });
   } catch (err) {
     if (jobId) {
-      const store = getStore("search-jobs");
-      await store.setJSON(jobId, {
-        status: "error",
-        error: err instanceof Error ? err.message : "Search failed",
-      });
+      try {
+        const store = getJobStore();
+        await store.setJSON(jobId, {
+          status: "error",
+          error: err instanceof Error ? err.message : "Search failed",
+        });
+      } catch {
+        // ignore blob write failure in error handler
+      }
     }
   }
 };
-

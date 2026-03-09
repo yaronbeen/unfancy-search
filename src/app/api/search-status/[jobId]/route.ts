@@ -1,13 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStore } from "@netlify/blobs";
 
+function getJobStore() {
+  const siteID =
+    process.env.NETLIFY_SITE_ID ?? "f566d9dd-b740-4ecf-afcd-2e962bda6e7a";
+  const token = process.env.NETLIFY_TOKEN;
+  if (token) {
+    return getStore({ name: "search-jobs", siteID, token });
+  }
+  return getStore("search-jobs");
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> },
 ) {
   try {
     const { jobId } = await params;
-    const store = getStore("search-jobs");
+    const store = getJobStore();
     const data = await store.get(jobId, { type: "json" });
 
     if (!data) {
