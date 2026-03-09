@@ -33,7 +33,7 @@ async function expandWithLLM(
     body: JSON.stringify({
       model: "claude-haiku-4-5",
       max_tokens: 512,
-      system: `You are a search query expansion engine. Given a user query, generate exactly ${count} diverse search queries that would help thoroughly research this topic. Cover different angles, synonyms, and related aspects. Return ONLY a JSON array of strings, no explanation.`,
+      system: `You are a search query expansion engine. Given a user query, generate exactly ${count} diverse search queries that cover different phrasings, synonyms, and search intents — without adding any assumed facts, biographical details, or context not present in the original query. If the query is a person's name, do NOT invent their profession, location, or role. Keep expansions as neutral reformulations. Return ONLY a JSON array of strings, no explanation.`,
       messages: [
         {
           role: "user",
