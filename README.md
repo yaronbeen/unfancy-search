@@ -16,7 +16,7 @@ A full-featured search engine with query expansion, multi-engine retrieval, dedu
 
 The kind of thing you'd pay a "fancy" search API vendor for.
 
-Except this one costs **$0.008 per search** instead of $0.05. And you own every line.
+Except this one costs **$0.003 per search** instead of $0.01–$0.05. And you own every line.
 
 **[Live Demo →](https://unfancy-search.netlify.app)**
 
@@ -27,7 +27,7 @@ Except this one costs **$0.008 per search** instead of $0.05. And you own every 
 Here's what happens when you call a fancy search API:
 
 ```
-1. Your query hits an LLM that rewrites it into 5-10 sub-queries
+1. Your query hits an LLM that rewrites it into sub-queries
 2. Those sub-queries hit a SERP scraper (yes, Google/Bing — same as everyone)
 3. Results get deduplicated and reranked
 4. You get clean JSON back
@@ -58,17 +58,17 @@ The reranking implementation is 15 lines of TypeScript. Fifteen. Go look at it.
 
 ## The Math That Should Make You Angry
 
-|                            | This project | Exa     | Tavily   |
-| -------------------------- | ------------ | ------- | -------- |
-| **Cost per search**        | ~$0.008      | ~$0.035 | ~$0.008+ |
-| **Cost per 1K searches**   | ~$8          | ~$35    | ~$32     |
-| **You own the code**       | Yes          | No      | No       |
-| **Vendor lock-in**         | None         | Yes     | Yes      |
-| **Can customize pipeline** | Everything   | Nothing | Nothing  |
+|                            | This project | Fancy API (low-end) | Fancy API (high-end) |
+| -------------------------- | ------------ | ------------------- | -------------------- |
+| **Cost per search**        | ~$0.003      | ~$0.01              | ~$0.05               |
+| **Cost per 1K searches**   | ~$3          | ~$10                | ~$50                 |
+| **You own the code**       | Yes          | No                  | No                   |
+| **Vendor lock-in**         | None         | Yes                 | Yes                  |
+| **Can customize pipeline** | Everything   | Nothing             | Nothing              |
 
-The SERP retrieval (the actual hard part) costs $1.50 per 1,000 requests through Bright Data. The query expansion is a single LLM call — pennies. The reranking is free because it runs in your own code.
+The SERP retrieval (the actual hard part) costs $1.50 per 1,000 requests through [Bright Data](https://get.brightdata.com/1tndi4600b25). The query expansion is a single Claude Haiku call — pennies. The reranking is free because it runs in your own code.
 
-You're paying vendors a 4-5x markup for a wrapper.
+You're paying vendors a 3-17x markup for a wrapper.
 
 ---
 
@@ -77,8 +77,8 @@ You're paying vendors a 4-5x markup for a wrapper.
 ### Prerequisites
 
 - Node.js 18+
-- A [Bright Data](https://brightdata.com) account (SERP API access)
-- An [OpenAI](https://platform.openai.com) API key (optional — rule-based expansion works without it)
+- A [Bright Data](https://get.brightdata.com/1tndi4600b25) account (SERP API access — you'll get extra credits when signing up through this link)
+- An [Anthropic](https://console.anthropic.com) API key (for query expansion via Claude Haiku)
 
 ### Steps
 
@@ -93,7 +93,8 @@ Fill in your keys:
 
 ```env
 BRIGHT_DATA_API_TOKEN=your_token_here
-OPENAI_API_KEY=your_key_here
+BRIGHT_DATA_SERP_ZONE=serp_api1
+ANTHROPIC_API_KEY=your_key_here
 ```
 
 Run it:
@@ -111,13 +112,14 @@ That's it. You now have a search API that does what the fancy ones do.
 ## Features
 
 - **Multi-engine search** — Google, Bing, or both simultaneously
-- **Query expansion** — LLM generates diverse sub-queries to cover more ground
+- **Query expansion** — Claude AI generates diverse sub-queries to cover more ground
 - **Reciprocal Rank Fusion** — Results appearing across multiple sub-queries rank higher
 - **Domain clustering** — See which domains dominate your results
 - **Domain diversity** — No single source hijacks the top positions
 - **Filters** — Include/exclude domains, pick engines, choose geo, set result count
 - **Research mode** — Deeper retrieval with 12 sub-queries instead of 5
 - **Cost transparency** — Every search shows you exactly what it cost
+- **URL sharing** — Share any search via `?q=` URL parameter
 
 ---
 
@@ -157,7 +159,7 @@ function rrf(rankedLists: SearchResult[][], k = 60): RankedResult[] {
 }
 ```
 
-That's it. 15 lines. This is what you're paying a 4x markup for.
+That's it. 15 lines. This is what you're paying a markup for.
 
 ---
 
@@ -167,20 +169,34 @@ That's it. 15 lines. This is what you're paying a 4x markup for.
 src/
 ├── app/
 │   ├── page.tsx                     # Search UI
-│   ├── layout.tsx                   # Root layout
+│   ├── layout.tsx                   # Root layout + OG metadata
 │   └── api/
-│       └── search/
-│           └── route.ts             # POST /api/search — full pipeline
+│       ├── search/route.ts          # POST — dispatches to background function
+│       ├── search-status/[jobId]/   # GET — polls for results via Netlify Blobs
+│       └── baseline/route.ts        # POST — Bright Data Datasets comparison
 ├── lib/
 │   ├── bright-data.ts               # SERP API client
-│   ├── query-expansion.ts           # LLM query expansion
+│   ├── query-expansion.ts           # Claude Haiku query expansion
 │   ├── rerank.ts                    # Reciprocal Rank Fusion
 │   ├── dedupe.ts                    # URL canonicalization
 │   ├── cluster.ts                   # Domain clustering + diversity
+│   ├── datasets.ts                  # Bright Data Datasets API
 │   └── types.ts                     # TypeScript types
 ├── components/                      # UI components
 └── hooks/                           # React hooks
+netlify/functions/
+└── search-background.mts           # Background Function — runs full pipeline
 ```
+
+---
+
+## Tech Stack
+
+- **Next.js 16** (App Router) + **TypeScript**
+- **[Bright Data](https://get.brightdata.com/1tndi4600b25) SERP API** — retrieval backbone
+- **Anthropic Claude Haiku** — query expansion
+- **Tailwind CSS** + **Framer Motion** — UI styling and animations
+- **Netlify** (Free tier) — hosting with Background Functions + Blobs
 
 ---
 
@@ -191,24 +207,6 @@ I'm not going to pretend this replaces everything.
 If you need sub-200ms latency with a pre-built index — SERP scraping has inherent overhead. If you need full-page content extraction at scale — you'll want a scraper or unlocker on top. If you need a managed service and don't want to maintain code — pay the markup, that's fine.
 
 But for most search features in most apps? Query expansion + SERP + reranking gets you 90% of the way. And you keep the other 90% of your money.
-
----
-
-## Tech Stack
-
-- **Next.js 16** (App Router) + **TypeScript**
-- **Bright Data SERP API** — retrieval backbone
-- **OpenAI GPT-4o-mini** — query expansion
-- **Tailwind CSS** — styling
-- **Deployed on Netlify**
-
----
-
-## License
-
-MIT. Take it. Build on it. Ship it.
-
-If this saved you from paying for a fancy search API, that's the whole point.
 
 ---
 
@@ -229,7 +227,7 @@ Tests cover:
 - **URL canonicalization** — tracking param removal, www stripping, dedup logic
 - **Reciprocal Rank Fusion** — score calculation, multi-list fusion, coverage tracking
 - **Domain clustering** — grouping, sorting, diversity enforcement
-- **Query expansion** — rule-based fallback, LLM integration (mocked)
+- **Query expansion** — LLM integration (mocked)
 - **SERP retrieval** — API client, fan-out execution, error handling
 - **API route** — full pipeline integration, filters, error responses
 
@@ -237,7 +235,7 @@ Tests cover:
 
 ## Baseline Comparison (Bright Data Datasets)
 
-The app includes a baseline layer powered by the [Bright Data Datasets API](https://brightdata.com/products/datasets).
+The app includes a baseline layer powered by the [Bright Data Datasets API](https://get.brightdata.com/1tndi4600b25).
 
 After running a search, click **"Compare with baseline"** in the sidebar to:
 
@@ -255,7 +253,7 @@ Add your dataset ID to `.env`:
 BRIGHT_DATA_DATASET_ID=your_dataset_id_here
 ```
 
-Create a Web Scraper (SERP type) in your [Bright Data dashboard](https://brightdata.com/cp) to get a dataset ID.
+Create a Web Scraper (SERP type) in your [Bright Data dashboard](https://get.brightdata.com/1tndi4600b25) to get a dataset ID.
 
 ### API
 
@@ -286,6 +284,20 @@ The skill covers:
 - Wiring the `/api/search` and `/api/baseline` routes
 - Setting up Tailwind CSS + Framer Motion UI components
 - Configuring vitest and writing tests
-- Deploying to Netlify or Vercel
+- Deploying to Netlify
 
 To use it, copy the `.claude/skills/` directory into your project or `~/.claude/skills/` for global access. Then invoke `/unfancy-search-pipeline` in Claude Code.
+
+---
+
+## Disclaimer
+
+Some links in this README are affiliate links. If you sign up for Bright Data through them, you may get extra credits on your account, and I may receive a small commission. This doesn't cost you anything extra - it helps support the project.
+
+---
+
+## License
+
+MIT. Take it. Build on it. Ship it.
+
+If this saved you from paying for a fancy search API, that's the whole point.

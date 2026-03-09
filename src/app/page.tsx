@@ -183,7 +183,7 @@ export default function Home() {
                         <p className="text-xs text-gray-500 leading-relaxed">
                           We hit real Google results via{" "}
                           <a
-                            href="https://brightdata.com/products/serp-api"
+                            href="https://get.brightdata.com/1tndi4600b25"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="font-semibold text-[var(--fg)] underline underline-offset-2"
@@ -390,7 +390,7 @@ export default function Home() {
       {/* Footer — Powered by Bright Data */}
       <footer className="fixed bottom-0 left-0 right-0 py-2 text-center bg-[var(--bg)] border-t border-gray-200/50">
         <a
-          href="https://brightdata.com/products/serp-api"
+          href="https://get.brightdata.com/1tndi4600b25"
           target="_blank"
           rel="noopener noreferrer"
           className="text-[11px] text-gray-400 hover:text-[var(--fg)] transition-colors font-medium"
