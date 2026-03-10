@@ -37,7 +37,7 @@ export function useSearch() {
   const [error, setError] = useState<string | null>(null);
 
   const search = useCallback(
-    async (searchQuery?: string, turnstileToken?: string | null) => {
+    async (searchQuery?: string) => {
       const q = (searchQuery ?? query).trim();
       if (!q) return;
 
@@ -55,7 +55,6 @@ export function useSearch() {
             query: q,
             engines: ["google"],
             ...filters,
-            turnstileToken: turnstileToken || undefined,
           }),
         });
 

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 
 const sans = Space_Grotesk({
@@ -56,10 +55,6 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${sans.variable} ${mono.variable} antialiased`}>
         {children}
-        <Script
-          src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-          strategy="lazyOnload"
-        />
       </body>
     </html>
   );

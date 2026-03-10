@@ -201,15 +201,13 @@ src/
 │   ├── cluster.ts                   # Domain clustering + diversity
 │   ├── kv-store.ts                  # Cloudflare KV helper
 │   ├── rate-limit.ts               # KV-based per-IP rate limiting
-│   ├── turnstile.ts                # Cloudflare Turnstile verification
 │   └── types.ts                     # TypeScript types
 ├── components/
 │   ├── baseline-comparison.tsx      # Baseline vs live comparison UI
 │   └── ...                          # Search box, filters, results, etc.
 └── hooks/
     ├── use-search.ts                # Search state management
-    ├── use-baseline.ts              # Baseline state + polling
-    └── use-turnstile.ts             # Cloudflare Turnstile widget hook
+    └── use-baseline.ts              # Baseline state + polling
 open-next.config.ts                   # Cloudflare adapter config
 wrangler.jsonc                         # Cloudflare Pages + KV config
 ```

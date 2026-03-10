@@ -4,7 +4,6 @@ import { triggerBaseline, fetchSnapshot, hashQuery } from "@/lib/datasets";
 import type { BaselineData } from "@/lib/datasets";
 import { kvSet, kvGet } from "@/lib/kv-store";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
-import { verifyTurnstile } from "@/lib/turnstile";
 
 const POLL_INTERVAL_MS = 10_000; // 10 seconds
 const MAX_POLL_TIME_MS = 300_000; // 5 minutes
@@ -88,7 +87,6 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as {
       query?: string;
       geo?: string;
-      turnstileToken?: string;
     };
     const query = body.query?.trim();
     if (!query) {
@@ -105,15 +103,6 @@ export async function POST(request: NextRequest) {
           status: 429,
           headers: { "Retry-After": String(rateLimit.retryAfter ?? 3600) },
         },
-      );
-    }
-
-    // Turnstile verification
-    const turnstileResult = await verifyTurnstile(body.turnstileToken, ip);
-    if (!turnstileResult.success) {
-      return NextResponse.json(
-        { error: turnstileResult.error },
-        { status: 403 },
       );
     }
 
