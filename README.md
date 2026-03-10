@@ -259,20 +259,13 @@ Tests cover:
 
 ## Claude Code Skill
 
-A Claude Code skill is included that enables Claude to generate this entire pipeline from scratch.
+A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill is included that lets Claude run searches through the full pipeline directly from your terminal.
 
 **Location:** [`.claude/skills/unfancy-search-pipeline/SKILL.md`](.claude/skills/unfancy-search-pipeline/SKILL.md)
 
-The skill covers:
+**What it does:** Ask Claude for a search query and it runs the whole backend process — query expansion, SERP fan-out via Bright Data, RRF reranking, deduplication, domain clustering — and shows you formatted results.
 
-- Scaffolding the Next.js + TypeScript project
-- Building all pipeline modules (types, query expansion, SERP client, dedupe, reranking, clustering)
-- Wiring the `/api/search` route with async background processing
-- Setting up Tailwind CSS + Framer Motion UI components
-- Configuring vitest and writing tests
-- Deploying to Cloudflare Pages with Workers + KV
-
-To use it, copy the `.claude/skills/` directory into your project or `~/.claude/skills/` for global access. Then invoke `/unfancy-search-pipeline` in Claude Code.
+**To use it:** Copy the `.claude/skills/` directory into your project or `~/.claude/skills/` for global access, then ask Claude to search for anything.
 
 ---
 
