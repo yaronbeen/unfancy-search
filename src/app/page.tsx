@@ -17,6 +17,8 @@ import {
   ArrowLeft,
   ChevronDown,
   ChevronUp,
+  Clipboard,
+  ClipboardCheck,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -56,6 +58,7 @@ export default function Home() {
   const router = useRouter();
   const [view, setView] = useState<"list" | "clusters">("list");
   const [howItWorksOpen, setHowItWorksOpen] = useState(false);
+  const [copiedMarkdown, setCopiedMarkdown] = useState(false);
 
   const hasResults = results !== null;
   const showHero = !hasResults && step === "idle";
@@ -85,6 +88,21 @@ export default function Home() {
   const handleCollectBaseline = useCallback(() => {
     collectBaseline();
   }, [collectBaseline]);
+
+  const handleCopyMarkdown = useCallback(() => {
+    if (!results) return;
+    const lines = [`## Search results for "${results.query}"`, ""];
+    results.results.forEach((r, i) => {
+      lines.push(`${i + 1}. **${r.title || r.url}**`);
+      lines.push(`   ${r.url}`);
+      if (r.description) lines.push(`   ${r.description}`);
+      lines.push("");
+    });
+    navigator.clipboard.writeText(lines.join("\n")).then(() => {
+      setCopiedMarkdown(true);
+      setTimeout(() => setCopiedMarkdown(false), 1500);
+    });
+  }, [results]);
 
   return (
     <main className="min-h-screen px-4 pb-20">
@@ -126,7 +144,7 @@ export default function Home() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              SERP retrieval + query expansion + RRF reranking.
+              Web search + query expansion + smart reranking.
               <br />
               <span className="text-[var(--fg)] font-semibold">
                 No fancy search API required.
@@ -194,7 +212,7 @@ export default function Home() {
                           Bright Data SERP
                         </h3>
                         <p className="text-xs text-gray-500 leading-relaxed">
-                          We hit real Google results via{" "}
+                          We hit real search results via{" "}
                           <a
                             href="https://get.brightdata.com/1tndi4600b25"
                             target="_blank"
@@ -319,7 +337,7 @@ export default function Home() {
             transition={{ delay: 0.1 }}
             className="max-w-5xl mx-auto mt-6"
           >
-            {/* Result count + view toggle */}
+            {/* Result count + copy + view toggle */}
             <div className="flex items-center justify-between mb-4 px-1">
               <p className="text-sm text-gray-500">
                 <span className="font-bold text-[var(--fg)] font-[family-name:var(--font-geist-mono)]">
@@ -331,6 +349,19 @@ export default function Home() {
                 </span>{" "}
                 raw hits
               </p>
+              <div className="flex items-center gap-2">
+                <motion.button
+                  onClick={handleCopyMarkdown}
+                  className="nb-btn nb-btn-sm !gap-1.5 text-xs"
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {copiedMarkdown ? (
+                    <ClipboardCheck className="w-3.5 h-3.5 text-[var(--accent-teal)]" />
+                  ) : (
+                    <Clipboard className="w-3.5 h-3.5" />
+                  )}
+                  {copiedMarkdown ? "Copied!" : "Copy as Markdown"}
+                </motion.button>
               <div className="flex gap-1">
                 <button
                   onClick={() => setView("list")}
@@ -354,6 +385,7 @@ export default function Home() {
                 >
                   <LayoutGrid className="w-4 h-4" />
                 </button>
+              </div>
               </div>
             </div>
 

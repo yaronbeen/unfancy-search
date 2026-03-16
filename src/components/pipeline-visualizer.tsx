@@ -19,7 +19,7 @@ const STEPS = [
   },
   {
     key: "retrieving",
-    label: "Searching SERP",
+    label: "Searching the web",
     icon: Radio,
     color: "var(--accent-teal)",
   },
@@ -33,9 +33,9 @@ const STEPS = [
 
 const WITTY_MESSAGES = [
   "Crawling the real web, not a cached index...",
-  "No fancy API markup — raw SERP data incoming...",
+  "No fancy API markup — raw search data incoming...",
   "Bright Data doing the heavy lifting...",
-  "Your query is hitting actual Google results...",
+  "Your query is hitting real search results...",
   "Worth the wait — no hallucinated links here...",
 ];
 
@@ -201,7 +201,7 @@ export function PipelineVisualizer({
                 transition={{ duration: 0.6 }}
                 className="text-xs text-[var(--fg)] font-medium"
               >
-                Real SERP calls can take up to 90s — hang tight!
+                Real web searches can take up to 90s — hang tight!
               </motion.p>
             </div>
           )}

@@ -104,7 +104,7 @@ export function FilterPanel({
         {/* Engine label */}
         <span className="ml-auto text-xs font-semibold text-gray-400 flex items-center gap-1">
           <Globe className="w-3 h-3" />
-          Google
+          Web
         </span>
       </div>
 
