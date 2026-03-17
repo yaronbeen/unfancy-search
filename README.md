@@ -76,16 +76,14 @@ You're paying vendors a 3-17x markup for a wrapper.
 
 ### Prerequisites
 
-- Node.js 18+
 - A [Bright Data](https://get.brightdata.com/1tndi4600b25) account (SERP API access — you'll get extra credits when signing up through this link)
 - An [Anthropic](https://console.anthropic.com) API key (for query expansion via Claude Haiku)
 
-### Steps
+### Option A: Docker (Recommended)
 
 ```bash
 git clone https://github.com/yaronbeen/unfancy-search.git
 cd unfancy-search
-pnpm install
 cp .env.example .env
 ```
 
@@ -100,6 +98,21 @@ ANTHROPIC_API_KEY=your_key_here
 Run it:
 
 ```bash
+docker compose up -d
+```
+
+Open [http://localhost:3000](http://localhost:3000). Done.
+
+### Option B: Local (pnpm)
+
+Requires Node.js 18+.
+
+```bash
+git clone https://github.com/yaronbeen/unfancy-search.git
+cd unfancy-search
+pnpm install
+cp .env.example .env
+# fill in your keys (same as above)
 pnpm dev
 ```
 
@@ -210,6 +223,9 @@ src/
     └── use-baseline.ts              # Baseline state + polling
 open-next.config.ts                   # Cloudflare adapter config
 wrangler.jsonc                         # Cloudflare Pages + KV config
+Dockerfile                             # Multi-stage production build
+docker-compose.yml                     # One-command local setup
+.dockerignore                          # Keeps secrets + bloat out of image
 ```
 
 ---
@@ -221,6 +237,7 @@ wrangler.jsonc                         # Cloudflare Pages + KV config
 - **Anthropic Claude Haiku** — query expansion
 - **Tailwind CSS** + **Framer Motion** — UI styling and animations
 - **Cloudflare Pages** (Free tier) — hosting with Workers + KV storage
+- **Docker** — multi-stage build, 308MB production image
 
 ---
 
